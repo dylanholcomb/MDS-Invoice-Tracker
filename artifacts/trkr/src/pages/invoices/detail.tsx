@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { useForm } from "react-hook-form";
 import {
   useGetInvoice,
   useUpdateInvoice,
@@ -13,7 +12,6 @@ import { InvoiceStatusBadge } from "@/components/invoice-status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -23,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Edit, X, Check, AlertTriangle } from "lucide-react";
+import { Loader2, ArrowLeft, Edit, X, Check, AlertTriangle, CheckCircle2, Circle } from "lucide-react";
 
 const STATUSES = [
   "Awaiting Processing",
@@ -69,9 +67,8 @@ export default function InvoiceDetailPage() {
   const [editingStatus, setEditingStatus] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [statusNotes, setStatusNotes] = useState("");
-  const [editingVoucher, setEditingVoucher] = useState(false);
-  const [voucherID, setVoucherID] = useState("");
-  const [warrantNumber, setWarrantNumber] = useState("");
+  const [editingStage, setEditingStage] = useState<number | null>(null);
+  const [stageFields, setStageFields] = useState<Record<string, string>>({});
 
   const { data: invoice, isLoading } = useGetInvoice(id, {
     query: {
@@ -99,17 +96,23 @@ export default function InvoiceDetailPage() {
     }
   };
 
-  const handleVoucherUpdate = async () => {
+  const handleFiscalStageUpdate = async () => {
     try {
-      await updateInvoice.mutateAsync({
-        id,
-        data: { voucherID: voucherID || null, warrantNumber: warrantNumber || null },
-      });
+      const data: Record<string, string | null> = {};
+      for (const [key, val] of Object.entries(stageFields)) {
+        data[key] = val.trim() || null;
+      }
+      const result = await updateInvoice.mutateAsync({ id, data });
       await queryClient.invalidateQueries({ queryKey: getGetInvoiceQueryKey(id) });
-      toast({ title: "Updated", description: "Voucher information saved" });
-      setEditingVoucher(false);
+      await queryClient.invalidateQueries({ queryKey: getListInvoicesQueryKey() });
+      const statusMsg = result.invoiceStatus !== invoice?.invoiceStatus
+        ? ` Status advanced to "${result.invoiceStatus}".`
+        : "";
+      toast({ title: "Saved", description: `Fi\$Cal information updated.${statusMsg}` });
+      setEditingStage(null);
+      setStageFields({});
     } catch {
-      toast({ title: "Error", description: "Failed to update", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to save", variant: "destructive" });
     }
   };
 
@@ -284,76 +287,357 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-card border border-card-border rounded-lg p-5">
-            <h2 className="text-sm font-semibold text-foreground mb-4">Routing</h2>
-            <dl className="grid grid-cols-2 gap-3">
-              <DetailField label="Reporting Structure" value={invoice.reportingStructure} />
-              <DetailField label="Staff Name" value={invoice.staffName} />
-              <DetailField label="Supervisor" value={invoice.supervisor} />
-              <DetailField label="Unit" value={invoice.unit} />
-              <DetailField label="Branch" value={invoice.branch} />
-              <DetailField label="Section" value={invoice.section} />
-            </dl>
+        <div className="bg-card border border-card-border rounded-lg p-5 mb-4">
+          <h2 className="text-sm font-semibold text-foreground mb-4">Routing</h2>
+          <dl className="grid grid-cols-3 gap-3">
+            <DetailField label="Reporting Structure" value={invoice.reportingStructure} />
+            <DetailField label="Staff Name" value={invoice.staffName} />
+            <DetailField label="Supervisor" value={invoice.supervisor} />
+            <DetailField label="Unit" value={invoice.unit} />
+            <DetailField label="Branch" value={invoice.branch} />
+            <DetailField label="Section" value={invoice.section} />
+          </dl>
+        </div>
+
+        {/* Fi$Cal Accounting Workflow */}
+        <div className="bg-card border border-card-border rounded-lg p-5 mb-4" data-testid="fiscal-workflow">
+          <div className="mb-4">
+            <h2 className="text-sm font-semibold text-foreground">Fi$Cal Accounting Workflow</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Completing each stage automatically advances the invoice status.
+            </p>
           </div>
 
-          <div className="bg-card border border-card-border rounded-lg p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-foreground">Accounting</h2>
-              {!editingVoucher && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setVoucherID(invoice.voucherID ?? "");
-                    setWarrantNumber(invoice.warrantNumber ?? "");
-                    setEditingVoucher(true);
-                  }}
-                  data-testid="button-edit-accounting"
-                >
-                  <Edit className="h-3.5 w-3.5 mr-1.5" />
-                  Edit
-                </Button>
-              )}
-            </div>
-            {editingVoucher ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Voucher ID</label>
-                  <Input
-                    value={voucherID}
-                    onChange={(e) => setVoucherID(e.target.value)}
-                    className="mt-1 text-sm"
-                    data-testid="input-voucher-id"
-                  />
+          <div className="space-y-0 divide-y divide-border">
+            {/* Stage 1: Fi$Cal Receipt */}
+            {(() => {
+              const stageNum = 1;
+              const isComplete = !!invoice.receiptId;
+              const isEditing = editingStage === stageNum;
+              return (
+                <div className="py-4 flex gap-4 items-start" data-testid="fiscal-stage-1">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {isComplete
+                      ? <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      : <Circle className="h-5 w-5 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Stage 1 — Fi$Cal Receipt</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Accountant creates a receipt in Fi$Cal against the purchase order. Advances status to{" "}
+                          <span className="font-medium">Receipted</span>.
+                        </p>
+                      </div>
+                      {!isEditing && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-shrink-0"
+                          data-testid="button-edit-stage-1"
+                          onClick={() => {
+                            setEditingStage(stageNum);
+                            setStageFields({ receiptId: invoice.receiptId ?? "" });
+                          }}
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-1.5" />
+                          {isComplete ? "Edit" : "Enter"}
+                        </Button>
+                      )}
+                    </div>
+                    {isEditing ? (
+                      <div className="mt-3 flex items-end gap-2 max-w-sm">
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Fi$Cal Receipt ID
+                          </label>
+                          <Input
+                            value={stageFields.receiptId ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, receiptId: e.target.value }))}
+                            className="mt-1 text-sm"
+                            placeholder="e.g. RCP-2024-00123"
+                            data-testid="input-receipt-id"
+                          />
+                        </div>
+                        <Button size="sm" onClick={handleFiscalStageUpdate} disabled={updateInvoice.isPending} data-testid="button-save-stage-1">
+                          {updateInvoice.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+                          Save
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setEditingStage(null)}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : isComplete ? (
+                      <p className="mt-1.5 text-sm font-mono text-foreground">{invoice.receiptId}</p>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-muted-foreground italic">Not yet entered</p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Warrant Number</label>
-                  <Input
-                    value={warrantNumber}
-                    onChange={(e) => setWarrantNumber(e.target.value)}
-                    className="mt-1 text-sm"
-                    data-testid="input-warrant-number"
-                  />
+              );
+            })()}
+
+            {/* Stage 2: Fi$Cal Voucher */}
+            {(() => {
+              const stageNum = 2;
+              const isComplete = !!invoice.voucherID;
+              const isEditing = editingStage === stageNum;
+              return (
+                <div className="py-4 flex gap-4 items-start" data-testid="fiscal-stage-2">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {isComplete
+                      ? <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      : <Circle className="h-5 w-5 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Stage 2 — Payment Voucher</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Accountant creates a payment voucher in Fi$Cal after verifying the invoice. Advances status to{" "}
+                          <span className="font-medium">Processed in Accounting</span>.
+                        </p>
+                      </div>
+                      {!isEditing && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-shrink-0"
+                          data-testid="button-edit-stage-2"
+                          onClick={() => {
+                            setEditingStage(stageNum);
+                            setStageFields({ voucherID: invoice.voucherID ?? "" });
+                          }}
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-1.5" />
+                          {isComplete ? "Edit" : "Enter"}
+                        </Button>
+                      )}
+                    </div>
+                    {isEditing ? (
+                      <div className="mt-3 flex items-end gap-2 max-w-sm">
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Fi$Cal Voucher Number
+                          </label>
+                          <Input
+                            value={stageFields.voucherID ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, voucherID: e.target.value }))}
+                            className="mt-1 text-sm"
+                            placeholder="e.g. VCH-2024-00456"
+                            data-testid="input-voucher-id"
+                          />
+                        </div>
+                        <Button size="sm" onClick={handleFiscalStageUpdate} disabled={updateInvoice.isPending} data-testid="button-save-stage-2">
+                          {updateInvoice.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+                          Save
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setEditingStage(null)}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : isComplete ? (
+                      <p className="mt-1.5 text-sm font-mono text-foreground">{invoice.voucherID}</p>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-muted-foreground italic">Not yet entered</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleVoucherUpdate} disabled={updateInvoice.isPending} data-testid="button-save-accounting">
-                    {updateInvoice.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 mr-1.5" />}
-                    Save
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setEditingVoucher(false)}>
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
+              );
+            })()}
+
+            {/* Stage 3: Supervisor Approval */}
+            {(() => {
+              const stageNum = 3;
+              const isComplete = !!(invoice.approvalDate && invoice.approvalManager);
+              const isEditing = editingStage === stageNum;
+              return (
+                <div className="py-4 flex gap-4 items-start" data-testid="fiscal-stage-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {isComplete
+                      ? <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      : <Circle className="h-5 w-5 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Stage 3 — Supervisor Approval</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Accounting supervisor approves the voucher in Fi$Cal. Approval date and manager name
+                          come from the daily Fi$Cal report. Advances status to{" "}
+                          <span className="font-medium">Approved in Accounting</span>.
+                        </p>
+                      </div>
+                      {!isEditing && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-shrink-0"
+                          data-testid="button-edit-stage-3"
+                          onClick={() => {
+                            setEditingStage(stageNum);
+                            setStageFields({
+                              approvalDate: invoice.approvalDate ?? "",
+                              approvalManager: invoice.approvalManager ?? "",
+                            });
+                          }}
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-1.5" />
+                          {isComplete ? "Edit" : "Enter"}
+                        </Button>
+                      )}
+                    </div>
+                    {isEditing ? (
+                      <div className="mt-3 space-y-2 max-w-sm">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Approval Date
+                          </label>
+                          <Input
+                            type="date"
+                            value={stageFields.approvalDate ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, approvalDate: e.target.value }))}
+                            className="mt-1 text-sm"
+                            data-testid="input-approval-date"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Approval Manager
+                          </label>
+                          <Input
+                            value={stageFields.approvalManager ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, approvalManager: e.target.value }))}
+                            className="mt-1 text-sm"
+                            placeholder="Manager name from Fi$Cal report"
+                            data-testid="input-approval-manager"
+                          />
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <Button size="sm" onClick={handleFiscalStageUpdate} disabled={updateInvoice.isPending} data-testid="button-save-stage-3">
+                            {updateInvoice.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+                            Save
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setEditingStage(null)}>
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : isComplete ? (
+                      <div className="mt-1.5 flex gap-6">
+                        <div>
+                          <dt className="text-xs text-muted-foreground">Approval Date</dt>
+                          <dd className="text-sm text-foreground">{invoice.approvalDate}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-muted-foreground">Approval Manager</dt>
+                          <dd className="text-sm text-foreground">{invoice.approvalManager}</dd>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-muted-foreground italic">Not yet entered</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <dl className="grid grid-cols-2 gap-3">
-                <DetailField label="Voucher ID" value={invoice.voucherID} />
-                <DetailField label="Warrant #" value={invoice.warrantNumber} />
-                <DetailField label="Warrant Date" value={invoice.warrantDate} />
-                <DetailField label="Approval Date" value={invoice.approvalDate} />
-              </dl>
-            )}
+              );
+            })()}
+
+            {/* Stage 4: SCO Warrant */}
+            {(() => {
+              const stageNum = 4;
+              const isComplete = !!(invoice.warrantNumber && invoice.warrantDate);
+              const isEditing = editingStage === stageNum;
+              return (
+                <div className="py-4 flex gap-4 items-start" data-testid="fiscal-stage-4">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {isComplete
+                      ? <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      : <Circle className="h-5 w-5 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Stage 4 — SCO Warrant</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          The State Controller's Office issues a payment warrant. Warrant number and date come
+                          from the daily Fi$Cal report. Advances status to{" "}
+                          <span className="font-medium">SCO Warrant Issued</span>.
+                        </p>
+                      </div>
+                      {!isEditing && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-shrink-0"
+                          data-testid="button-edit-stage-4"
+                          onClick={() => {
+                            setEditingStage(stageNum);
+                            setStageFields({
+                              warrantNumber: invoice.warrantNumber ?? "",
+                              warrantDate: invoice.warrantDate ?? "",
+                            });
+                          }}
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-1.5" />
+                          {isComplete ? "Edit" : "Enter"}
+                        </Button>
+                      )}
+                    </div>
+                    {isEditing ? (
+                      <div className="mt-3 space-y-2 max-w-sm">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Warrant Number
+                          </label>
+                          <Input
+                            value={stageFields.warrantNumber ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, warrantNumber: e.target.value }))}
+                            className="mt-1 text-sm"
+                            placeholder="e.g. WRT-2024-00789"
+                            data-testid="input-warrant-number"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Warrant Date
+                          </label>
+                          <Input
+                            type="date"
+                            value={stageFields.warrantDate ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, warrantDate: e.target.value }))}
+                            className="mt-1 text-sm"
+                            data-testid="input-warrant-date"
+                          />
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <Button size="sm" onClick={handleFiscalStageUpdate} disabled={updateInvoice.isPending} data-testid="button-save-stage-4">
+                            {updateInvoice.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+                            Save
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setEditingStage(null)}>
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : isComplete ? (
+                      <div className="mt-1.5 flex gap-6">
+                        <div>
+                          <dt className="text-xs text-muted-foreground">Warrant Number</dt>
+                          <dd className="text-sm text-foreground font-mono">{invoice.warrantNumber}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-muted-foreground">Warrant Date</dt>
+                          <dd className="text-sm text-foreground">{invoice.warrantDate}</dd>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-muted-foreground italic">Not yet entered</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

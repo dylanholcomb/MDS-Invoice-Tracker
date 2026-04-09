@@ -16,10 +16,12 @@ export interface UpdateInvoiceBody {
   vendorName?: string | null;
   contractPONumber?: string | null;
   fiscalPONumber?: string | null;
+  receiptId?: string | null;
   voucherID?: string | null;
   warrantNumber?: string | null;
   warrantDate?: string | null;
   approvalDate?: string | null;
+  approvalManager?: string | null;
   staffName?: string | null;
   supervisor?: string | null;
   unit?: string | null;

@@ -234,10 +234,12 @@ router.patch("/invoices/:id", async (req, res) => {
     "vendorName",
     "contractPONumber",
     "fiscalPONumber",
+    "receiptId",
     "voucherID",
     "warrantNumber",
     "warrantDate",
     "approvalDate",
+    "approvalManager",
     "staffName",
     "supervisor",
     "unit",
@@ -278,21 +280,45 @@ router.patch("/invoices/:id", async (req, res) => {
     }
   }
 
-  const [updated] = await db
+  let [updated] = await db
     .update(invoicesTable)
     .set(updateData as Parameters<typeof db.update>[0] extends unknown ? typeof updateData : never)
     .where(eq(invoicesTable.id, id))
     .returning();
 
-  if (body.invoiceStatus && body.invoiceStatus !== existing.invoiceStatus) {
+  const autoStatus = computeFiscalAutoStatus(updated);
+  const statusBeforeAuto = updated.invoiceStatus;
+
+  if (autoStatus && autoStatus !== updated.invoiceStatus) {
+    [updated] = await db
+      .update(invoicesTable)
+      .set({ invoiceStatus: autoStatus, updatedAt: new Date() } as Parameters<typeof db.update>[0] extends unknown ? typeof updateData : never)
+      .where(eq(invoicesTable.id, id))
+      .returning();
+  }
+
+  const finalStatus = updated.invoiceStatus;
+  const requestedStatus = body.invoiceStatus as string | undefined;
+
+  if (requestedStatus && requestedStatus !== existing.invoiceStatus) {
     await db.insert(invoiceActivityTable).values({
       invoiceId: id,
       invoiceNumber: existing.invoiceNumber,
       action: "status_changed",
       statusFrom: existing.invoiceStatus,
-      statusTo: body.invoiceStatus as string,
+      statusTo: requestedStatus,
       changedBy: req.session?.username,
       notes: (body.statusNotes as string) ?? null,
+    });
+  } else if (autoStatus && autoStatus !== statusBeforeAuto) {
+    await db.insert(invoiceActivityTable).values({
+      invoiceId: id,
+      invoiceNumber: existing.invoiceNumber,
+      action: "status_changed",
+      statusFrom: existing.invoiceStatus,
+      statusTo: finalStatus,
+      changedBy: req.session?.username,
+      notes: "Status auto-advanced based on Fi\$Cal field completion",
     });
   } else {
     await db.insert(invoiceActivityTable).values({
@@ -324,6 +350,38 @@ router.delete("/invoices/:id", async (req, res) => {
   await db.delete(invoicesTable).where(eq(invoicesTable.id, id));
   res.json({ message: "Invoice deleted" });
 });
+
+const FISCAL_WORKFLOW_ORDER = [
+  "Awaiting Processing",
+  "In Progress",
+  "Receipted",
+  "Processed in Accounting",
+  "Approved in Accounting",
+  "SCO Warrant Issued",
+];
+
+function computeFiscalAutoStatus(inv: typeof invoicesTable.$inferSelect): string | null {
+  const currentRank = FISCAL_WORKFLOW_ORDER.indexOf(inv.invoiceStatus);
+  if (currentRank === -1) return null;
+
+  let earnedStatus: string | null = null;
+
+  if (inv.warrantNumber && inv.warrantDate) {
+    earnedStatus = "SCO Warrant Issued";
+  } else if (inv.approvalDate && inv.approvalManager) {
+    earnedStatus = "Approved in Accounting";
+  } else if (inv.voucherID) {
+    earnedStatus = "Processed in Accounting";
+  } else if (inv.receiptId) {
+    earnedStatus = "Receipted";
+  }
+
+  if (!earnedStatus) return null;
+
+  const earnedRank = FISCAL_WORKFLOW_ORDER.indexOf(earnedStatus);
+  if (earnedRank > currentRank) return earnedStatus;
+  return null;
+}
 
 function serializeInvoice(inv: typeof invoicesTable.$inferSelect) {
   return {

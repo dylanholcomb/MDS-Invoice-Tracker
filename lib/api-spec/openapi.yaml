@@ -620,6 +620,9 @@ components:
         fiscalPONumber:
           type: string
           nullable: true
+        receiptId:
+          type: string
+          nullable: true
         voucherID:
           type: string
           nullable: true
@@ -630,6 +633,9 @@ components:
           type: string
           nullable: true
         approvalDate:
+          type: string
+          nullable: true
+        approvalManager:
           type: string
           nullable: true
         staffName:
@@ -859,6 +865,9 @@ components:
         fiscalPONumber:
           type: string
           nullable: true
+        receiptId:
+          type: string
+          nullable: true
         voucherID:
           type: string
           nullable: true
@@ -869,6 +878,9 @@ components:
           type: string
           nullable: true
         approvalDate:
+          type: string
+          nullable: true
+        approvalManager:
           type: string
           nullable: true
         staffName:
