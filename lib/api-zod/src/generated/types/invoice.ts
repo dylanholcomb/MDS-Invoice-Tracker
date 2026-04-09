@@ -18,10 +18,10 @@ export interface Invoice {
   vendorName?: string | null;
   contractPONumber?: string | null;
   fiscalPONumber?: string | null;
-  receiptId?: string | null;
-  voucherID?: string | null;
-  warrantNumber?: string | null;
-  warrantDate?: string | null;
+  erpReceiptRef?: string | null;
+  erpVoucherRef?: string | null;
+  erpPaymentRef?: string | null;
+  erpPaymentDate?: string | null;
   approvalDate?: string | null;
   approvalManager?: string | null;
   staffName?: string | null;

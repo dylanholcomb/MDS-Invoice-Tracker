@@ -740,16 +740,16 @@ components:
         fiscalPONumber:
           type: string
           nullable: true
-        receiptId:
+        erpReceiptRef:
           type: string
           nullable: true
-        voucherID:
+        erpVoucherRef:
           type: string
           nullable: true
-        warrantNumber:
+        erpPaymentRef:
           type: string
           nullable: true
-        warrantDate:
+        erpPaymentDate:
           type: string
           nullable: true
         approvalDate:
@@ -985,16 +985,16 @@ components:
         fiscalPONumber:
           type: string
           nullable: true
-        receiptId:
+        erpReceiptRef:
           type: string
           nullable: true
-        voucherID:
+        erpVoucherRef:
           type: string
           nullable: true
-        warrantNumber:
+        erpPaymentRef:
           type: string
           nullable: true
-        warrantDate:
+        erpPaymentDate:
           type: string
           nullable: true
         approvalDate:
