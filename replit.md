@@ -38,7 +38,7 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
    - Invoice list, detail, new invoice
    - Suppliers, purchase orders, staff routing
    - Aging report
-   - Fi$Cal 4-stage accounting workflow (Receipt ID → Voucher → Approval → SCO Warrant)
+   - ERP 4-stage accounting workflow (Receipt Ref → Voucher Ref → Approval → Payment Ref)
    - Admin login: `admin` / `password`
 
 2. **API Server** (`artifacts/api-server`, `/api`, port 8080)
@@ -59,8 +59,9 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 ### Database
 
 - `users`: id, username, password_hash, display_name, role, linked_supplier_id, email
-- `invoices`: full invoice lifecycle + submitter_user_id, submission_reference
+- `invoices`: full invoice lifecycle + submitter_user_id, submission_reference, erp_receipt_ref, erp_voucher_ref, erp_payment_ref, erp_payment_date
 - `invoice_attachments`: id, invoice_id, filename, object_path, content_type, file_size, uploaded_by
+- `erp_configs`: id, erp_name, receipt_ref_label, voucher_ref_label, payment_ref_label, payment_date_label, payment_confirmed_label, is_active
 - `suppliers`, `purchase_orders`, `speedcharts`, `staff_routing`, `invoice_activity`
 
 ### Object Storage
@@ -73,12 +74,21 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 ### Invoice Statuses
 
 "Awaiting Processing", "In Progress", "Receipted", "Processed in Accounting", 
-"Approved in Accounting", "SCO Warrant Issued", "Returned to Submitter", "Duplicate", "Completed"
+"Approved in Accounting", "Payment Confirmed", "Returned to Submitter", "Duplicate", "Completed"
 
-### Fi$Cal Auto-Status Logic
+### ERP Auto-Status Logic
 
-- receiptId filled → advance to "Receipted"
-- voucherID filled → advance to "Processed in Accounting"
+- erpReceiptRef filled → advance to "Receipted"
+- erpVoucherRef filled → advance to "Processed in Accounting"
 - approvalDate + approvalManager both filled → advance to "Approved in Accounting"
-- warrantNumber + warrantDate both filled → advance to "SCO Warrant Issued"
+- erpPaymentRef + erpPaymentDate both filled → advance to "Payment Confirmed"
 - Only advances forward, never retreats status
+- Field aliases: accepts Fi$Cal (Receipt ID, Voucher ID, Warrant Number/Date) and SAP/NetSuite/QB equivalents in ERP Import
+
+### ERP Integration Layer
+
+- `erp_configs` table holds per-client ERP configuration and custom field labels
+- ERP Import page accepts Excel/CSV from any ERP — column header aliases mapped in HEADER_MAP
+- Gov version aliases: Receipt ID, Voucher ID, Warrant Number, Warrant Date
+- Private/SAP aliases: Document Number, Check/EFT Reference, Payment Date
+- Architecture ready for webhook/API connector as next integration slot

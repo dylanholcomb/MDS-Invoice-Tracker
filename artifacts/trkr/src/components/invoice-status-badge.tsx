@@ -6,7 +6,7 @@ const STATUS_STYLES: Record<string, string> = {
   Receipted: "bg-indigo-100 text-indigo-800 border-indigo-200",
   "Processed in Accounting": "bg-violet-100 text-violet-800 border-violet-200",
   "Approved in Accounting": "bg-cyan-100 text-cyan-800 border-cyan-200",
-  "SCO Warrant Issued": "bg-teal-100 text-teal-800 border-teal-200",
+  "Payment Confirmed": "bg-teal-100 text-teal-800 border-teal-200",
   "Returned to Submitter": "bg-orange-100 text-orange-800 border-orange-200",
   Duplicate: "bg-red-100 text-red-800 border-red-200",
   Completed: "bg-green-100 text-green-800 border-green-200",

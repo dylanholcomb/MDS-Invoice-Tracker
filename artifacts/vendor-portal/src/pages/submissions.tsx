@@ -10,7 +10,7 @@ import { Loader2, PlusCircle, FileText, ChevronRight, Paperclip } from "lucide-r
 function statusBadgeVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
   switch (status) {
     case "Completed":
-    case "SCO Warrant Issued":
+    case "Payment Confirmed":
       return "default";
     case "Returned to Submitter":
     case "Duplicate":

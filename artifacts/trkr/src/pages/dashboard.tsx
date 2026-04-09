@@ -70,6 +70,16 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Invoice tracking overview</p>
         </div>
 
+        {!statsLoading && (stats as any)?.staleCount > 0 && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center gap-3" data-testid="alert-stale-invoices">
+            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+            <p className="text-sm text-amber-800">
+              <span className="font-semibold">{(stats as any).staleCount} invoice{(stats as any).staleCount !== 1 ? "s" : ""}</span> have not advanced status in {45}+ days.{" "}
+              <Link href="/aging" className="underline font-medium">Review in Aging Report</Link>
+            </p>
+          </div>
+        )}
+
         {statsLoading ? (
           <div className="grid grid-cols-4 gap-4 mb-6">
             {[...Array(4)].map((_, i) => (

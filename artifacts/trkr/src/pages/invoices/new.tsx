@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,6 +38,19 @@ const INVOICE_TYPES = ["Standard", "Revolving Fund", "Advance Payment", "Local H
 const FISCAL_YEARS = ["2024-25", "2023-24", "2022-23"];
 const PROCESSING_TYPES = ["Standard", "Expedited", "Rush"];
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+interface Speedchart {
+  id: number;
+  speedchart: string;
+  description: string | null;
+  fund: string | null;
+  program: string | null;
+  pcBusinessUnit: string | null;
+  projectID: string | null;
+  activityID: string | null;
+}
+
 const schema = z.object({
   invoiceNumber: z.string().min(1, "Invoice number is required"),
   invoiceAmount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
@@ -55,6 +68,7 @@ const schema = z.object({
   processingType: z.string().optional(),
   submitterName: z.string().optional(),
   submitterEmail: z.string().email().optional().or(z.literal("")),
+  speedchartCode: z.string().optional(),
   expedite: z.boolean().default(false),
   cashHold: z.boolean().default(false),
   localHealth: z.boolean().default(false),
@@ -95,6 +109,31 @@ export default function NewInvoicePage() {
   const { data: staffList } = useListStaff({
     query: { queryKey: getListStaffQueryKey() },
   });
+
+  const [scSearch, setScSearch] = useState("");
+  const [scOptions, setScOptions] = useState<Speedchart[]>([]);
+  const [scSelected, setScSelected] = useState<Speedchart | null>(null);
+  const [scOpen, setScOpen] = useState(false);
+  const scRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scSearch.trim()) { setScOptions([]); return; }
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`${BASE}/api/speedcharts?search=${encodeURIComponent(scSearch)}&limit=15`);
+        if (res.ok) setScOptions(await res.json());
+      } catch { /* ignore */ }
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [scSearch]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (scRef.current && !scRef.current.contains(e.target as Node)) setScOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -324,6 +363,73 @@ export default function NewInvoicePage() {
                   )}
                 />
               </div>
+            </div>
+
+            <div className="bg-card border border-card-border rounded-lg p-5">
+              <h2 className="text-sm font-semibold text-foreground mb-4">Fund Coding (Speedchart)</h2>
+              <FormField
+                control={form.control}
+                name="speedchartCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Speedchart Code</FormLabel>
+                    <div ref={scRef} className="relative">
+                      <FormControl>
+                        <Input
+                          value={scSelected ? scSelected.speedchart : scSearch}
+                          onChange={(e) => {
+                            setScSelected(null);
+                            field.onChange("");
+                            setScSearch(e.target.value);
+                            setScOpen(true);
+                          }}
+                          onFocus={() => { if (scOptions.length) setScOpen(true); }}
+                          placeholder="Type to search speedchart..."
+                          data-testid="input-speedchart-code"
+                          className="font-mono"
+                        />
+                      </FormControl>
+                      {scOpen && scOptions.length > 0 && (
+                        <div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-md shadow-md max-h-48 overflow-y-auto">
+                          {scOptions.map((sc) => (
+                            <button
+                              key={sc.id}
+                              type="button"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
+                              onClick={() => {
+                                setScSelected(sc);
+                                field.onChange(sc.speedchart);
+                                setScSearch("");
+                                setScOpen(false);
+                              }}
+                            >
+                              <span className="font-mono font-medium">{sc.speedchart}</span>
+                              {sc.description && <span className="text-muted-foreground ml-2 text-xs">{sc.description}</span>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {scSelected && (
+                      <div className="mt-2 grid grid-cols-3 gap-x-4 gap-y-1 bg-muted/30 rounded px-3 py-2">
+                        {[
+                          ["Fund", scSelected.fund],
+                          ["Program", scSelected.program],
+                          ["PC Bus. Unit", scSelected.pcBusinessUnit],
+                          ["Project ID", scSelected.projectID],
+                          ["Activity ID", scSelected.activityID],
+                        ].filter(([, v]) => v).map(([label, value]) => (
+                          <div key={label as string}>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                            <p className="text-xs font-mono font-medium">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="bg-card border border-card-border rounded-lg p-5">

@@ -111,7 +111,7 @@ const STATUSES = [
   "Receipted",
   "Processed in Accounting",
   "Approved in Accounting",
-  "SCO Warrant Issued",
+  "Payment Confirmed",
   "Returned to Submitter",
   "Duplicate",
   "Completed",
@@ -190,7 +190,7 @@ export default function InvoiceDetailPage() {
       const statusMsg = result.invoiceStatus !== invoice?.invoiceStatus
         ? ` Status advanced to "${result.invoiceStatus}".`
         : "";
-      toast({ title: "Saved", description: `Fi\$Cal information updated.${statusMsg}` });
+      toast({ title: "Saved", description: `ERP information updated.${statusMsg}` });
       setEditingStage(null);
       setStageFields({});
     } catch {
@@ -381,20 +381,20 @@ export default function InvoiceDetailPage() {
           </dl>
         </div>
 
-        {/* Fi$Cal Accounting Workflow */}
+        {/* ERP Accounting Workflow */}
         <div className="bg-card border border-card-border rounded-lg p-5 mb-4" data-testid="fiscal-workflow">
           <div className="mb-4">
-            <h2 className="text-sm font-semibold text-foreground">Fi$Cal Accounting Workflow</h2>
+            <h2 className="text-sm font-semibold text-foreground">ERP Accounting Workflow</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Completing each stage automatically advances the invoice status.
             </p>
           </div>
 
           <div className="space-y-0 divide-y divide-border">
-            {/* Stage 1: Fi$Cal Receipt */}
+            {/* Stage 1: Receipt Reference */}
             {(() => {
               const stageNum = 1;
-              const isComplete = !!invoice.receiptId;
+              const isComplete = !!invoice.erpReceiptRef;
               const isEditing = editingStage === stageNum;
               return (
                 <div className="py-4 flex gap-4 items-start" data-testid="fiscal-stage-1">
@@ -406,9 +406,9 @@ export default function InvoiceDetailPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-foreground">Stage 1 — Fi$Cal Receipt</p>
+                        <p className="text-sm font-medium text-foreground">Stage 1 — Receipt Reference</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Accountant creates a receipt in Fi$Cal against the purchase order. Advances status to{" "}
+                          Accountant records the ERP receipt reference after goods/services are confirmed. Advances status to{" "}
                           <span className="font-medium">Receipted</span>.
                         </p>
                       </div>
@@ -420,7 +420,7 @@ export default function InvoiceDetailPage() {
                           data-testid="button-edit-stage-1"
                           onClick={() => {
                             setEditingStage(stageNum);
-                            setStageFields({ receiptId: invoice.receiptId ?? "" });
+                            setStageFields({ erpReceiptRef: invoice.erpReceiptRef ?? "" });
                           }}
                         >
                           <Edit className="h-3.5 w-3.5 mr-1.5" />
@@ -432,11 +432,11 @@ export default function InvoiceDetailPage() {
                       <div className="mt-3 flex items-end gap-2 max-w-sm">
                         <div className="flex-1">
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Fi$Cal Receipt ID
+                            ERP Receipt Reference
                           </label>
                           <Input
-                            value={stageFields.receiptId ?? ""}
-                            onChange={(e) => setStageFields((f) => ({ ...f, receiptId: e.target.value }))}
+                            value={stageFields.erpReceiptRef ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, erpReceiptRef: e.target.value }))}
                             className="mt-1 text-sm"
                             placeholder="e.g. RCP-2024-00123"
                             data-testid="input-receipt-id"
@@ -451,7 +451,7 @@ export default function InvoiceDetailPage() {
                         </Button>
                       </div>
                     ) : isComplete ? (
-                      <p className="mt-1.5 text-sm font-mono text-foreground">{invoice.receiptId}</p>
+                      <p className="mt-1.5 text-sm font-mono text-foreground">{invoice.erpReceiptRef}</p>
                     ) : (
                       <p className="mt-1.5 text-xs text-muted-foreground italic">Not yet entered</p>
                     )}
@@ -460,10 +460,10 @@ export default function InvoiceDetailPage() {
               );
             })()}
 
-            {/* Stage 2: Fi$Cal Voucher */}
+            {/* Stage 2: Voucher Reference */}
             {(() => {
               const stageNum = 2;
-              const isComplete = !!invoice.voucherID;
+              const isComplete = !!invoice.erpVoucherRef;
               const isEditing = editingStage === stageNum;
               return (
                 <div className="py-4 flex gap-4 items-start" data-testid="fiscal-stage-2">
@@ -475,9 +475,9 @@ export default function InvoiceDetailPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-foreground">Stage 2 — Payment Voucher</p>
+                        <p className="text-sm font-medium text-foreground">Stage 2 — Voucher Reference</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Accountant creates a payment voucher in Fi$Cal after verifying the invoice. Advances status to{" "}
+                          Accountant records the ERP voucher or document number after verifying the invoice. Advances status to{" "}
                           <span className="font-medium">Processed in Accounting</span>.
                         </p>
                       </div>
@@ -489,7 +489,7 @@ export default function InvoiceDetailPage() {
                           data-testid="button-edit-stage-2"
                           onClick={() => {
                             setEditingStage(stageNum);
-                            setStageFields({ voucherID: invoice.voucherID ?? "" });
+                            setStageFields({ erpVoucherRef: invoice.erpVoucherRef ?? "" });
                           }}
                         >
                           <Edit className="h-3.5 w-3.5 mr-1.5" />
@@ -501,11 +501,11 @@ export default function InvoiceDetailPage() {
                       <div className="mt-3 flex items-end gap-2 max-w-sm">
                         <div className="flex-1">
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Fi$Cal Voucher Number
+                            ERP Voucher / Document Number
                           </label>
                           <Input
-                            value={stageFields.voucherID ?? ""}
-                            onChange={(e) => setStageFields((f) => ({ ...f, voucherID: e.target.value }))}
+                            value={stageFields.erpVoucherRef ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, erpVoucherRef: e.target.value }))}
                             className="mt-1 text-sm"
                             placeholder="e.g. VCH-2024-00456"
                             data-testid="input-voucher-id"
@@ -520,7 +520,7 @@ export default function InvoiceDetailPage() {
                         </Button>
                       </div>
                     ) : isComplete ? (
-                      <p className="mt-1.5 text-sm font-mono text-foreground">{invoice.voucherID}</p>
+                      <p className="mt-1.5 text-sm font-mono text-foreground">{invoice.erpVoucherRef}</p>
                     ) : (
                       <p className="mt-1.5 text-xs text-muted-foreground italic">Not yet entered</p>
                     )}
@@ -625,10 +625,10 @@ export default function InvoiceDetailPage() {
               );
             })()}
 
-            {/* Stage 4: SCO Warrant */}
+            {/* Stage 4: Payment Reference */}
             {(() => {
               const stageNum = 4;
-              const isComplete = !!(invoice.warrantNumber && invoice.warrantDate);
+              const isComplete = !!(invoice.erpPaymentRef && invoice.erpPaymentDate);
               const isEditing = editingStage === stageNum;
               return (
                 <div className="py-4 flex gap-4 items-start" data-testid="fiscal-stage-4">
@@ -640,11 +640,10 @@ export default function InvoiceDetailPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-foreground">Stage 4 — SCO Warrant</p>
+                        <p className="text-sm font-medium text-foreground">Stage 4 — Payment Reference</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          The State Controller's Office issues a payment warrant. Warrant number and date come
-                          from the daily Fi$Cal report. Advances status to{" "}
-                          <span className="font-medium">SCO Warrant Issued</span>.
+                          Payment is confirmed by the ERP system. Record the payment reference and date to advance status to{" "}
+                          <span className="font-medium">Payment Confirmed</span>.
                         </p>
                       </div>
                       {!isEditing && (
@@ -656,8 +655,8 @@ export default function InvoiceDetailPage() {
                           onClick={() => {
                             setEditingStage(stageNum);
                             setStageFields({
-                              warrantNumber: invoice.warrantNumber ?? "",
-                              warrantDate: invoice.warrantDate ?? "",
+                              erpPaymentRef: invoice.erpPaymentRef ?? "",
+                              erpPaymentDate: invoice.erpPaymentDate ?? "",
                             });
                           }}
                         >
@@ -670,24 +669,24 @@ export default function InvoiceDetailPage() {
                       <div className="mt-3 space-y-2 max-w-sm">
                         <div>
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Warrant Number
+                            Payment Reference
                           </label>
                           <Input
-                            value={stageFields.warrantNumber ?? ""}
-                            onChange={(e) => setStageFields((f) => ({ ...f, warrantNumber: e.target.value }))}
+                            value={stageFields.erpPaymentRef ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, erpPaymentRef: e.target.value }))}
                             className="mt-1 text-sm"
-                            placeholder="e.g. WRT-2024-00789"
+                            placeholder="e.g. CHK-2024-00789 or EFT-00456"
                             data-testid="input-warrant-number"
                           />
                         </div>
                         <div>
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Warrant Date
+                            Payment Date
                           </label>
                           <Input
                             type="date"
-                            value={stageFields.warrantDate ?? ""}
-                            onChange={(e) => setStageFields((f) => ({ ...f, warrantDate: e.target.value }))}
+                            value={stageFields.erpPaymentDate ?? ""}
+                            onChange={(e) => setStageFields((f) => ({ ...f, erpPaymentDate: e.target.value }))}
                             className="mt-1 text-sm"
                             data-testid="input-warrant-date"
                           />
@@ -705,12 +704,12 @@ export default function InvoiceDetailPage() {
                     ) : isComplete ? (
                       <div className="mt-1.5 flex gap-6">
                         <div>
-                          <dt className="text-xs text-muted-foreground">Warrant Number</dt>
-                          <dd className="text-sm text-foreground font-mono">{invoice.warrantNumber}</dd>
+                          <dt className="text-xs text-muted-foreground">Payment Reference</dt>
+                          <dd className="text-sm text-foreground font-mono">{invoice.erpPaymentRef}</dd>
                         </div>
                         <div>
-                          <dt className="text-xs text-muted-foreground">Warrant Date</dt>
-                          <dd className="text-sm text-foreground">{invoice.warrantDate}</dd>
+                          <dt className="text-xs text-muted-foreground">Payment Date</dt>
+                          <dd className="text-sm text-foreground">{invoice.erpPaymentDate}</dd>
                         </div>
                       </div>
                     ) : (

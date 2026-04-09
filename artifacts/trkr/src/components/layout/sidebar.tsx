@@ -4,10 +4,11 @@ import {
   FileText,
   Users,
   ShoppingCart,
-  BarChart2,
   Settings,
   LogOut,
   Clock,
+  Hash,
+  FileInput,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,8 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/invoices", label: "Invoices", icon: FileText },
   { href: "/aging", label: "Aging Report", icon: Clock },
+  { href: "/speedcharts", label: "Speedcharts", icon: Hash },
+  { href: "/fiscal-import", label: "ERP Import", icon: FileInput },
   { href: "/suppliers", label: "Suppliers", icon: Users },
   { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingCart },
   { href: "/staff", label: "Staff Routing", icon: Settings },

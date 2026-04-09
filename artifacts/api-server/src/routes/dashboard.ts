@@ -1,15 +1,20 @@
 import { Router, type IRouter } from "express";
-import { sql, ne, desc } from "drizzle-orm";
+import { sql, desc, inArray, and, lt } from "drizzle-orm";
 import { db } from "../lib/db";
 import { invoicesTable, invoiceActivityTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+
+const STALE_DAYS = 45;
+const ACTIVE_STATUSES = ["Awaiting Processing", "In Progress", "Receipted", "Processed in Accounting", "Approved in Accounting"];
 
 const router: IRouter = Router();
 
 router.use(requireAuth);
 
 router.get("/dashboard/stats", async (req, res) => {
-  const [totals, byStatus, byUnit, byFiscalYear, flags] = await Promise.all([
+  const staleThreshold = new Date(Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000);
+
+  const [totals, byStatus, byUnit, byFiscalYear, flags, stale] = await Promise.all([
     db
       .select({
         totalInvoices: sql<number>`count(*)`,
@@ -54,6 +59,14 @@ router.get("/dashboard/stats", async (req, res) => {
         duplicateCount: sql<number>`sum(case when invoice_status = 'Duplicate' then 1 else 0 end)`,
       })
       .from(invoicesTable),
+
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(invoicesTable)
+      .where(and(
+        inArray(invoicesTable.invoiceStatus, ACTIVE_STATUSES),
+        lt(invoicesTable.updatedAt, staleThreshold)
+      )),
   ]);
 
   const total = totals[0] ?? { totalInvoices: 0, totalAmount: 0 };
@@ -77,6 +90,7 @@ router.get("/dashboard/stats", async (req, res) => {
         count: Number(y.count),
         totalAmount: Number(y.totalAmount ?? 0),
       })),
+    staleCount: Number(stale[0]?.count ?? 0),
     avgProcessingDays: null,
   });
 });

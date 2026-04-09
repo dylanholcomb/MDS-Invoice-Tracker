@@ -40,10 +40,10 @@ export const invoicesTable = pgTable("invoices", {
   vendorName: text("vendor_name"),
   contractPONumber: text("contract_po_number"),
   fiscalPONumber: text("fiscal_po_number"),
-  receiptId: text("receipt_id"),
-  voucherID: text("voucher_id"),
-  warrantNumber: text("warrant_number"),
-  warrantDate: text("warrant_date"),
+  erpReceiptRef: text("erp_receipt_ref"),
+  erpVoucherRef: text("erp_voucher_ref"),
+  erpPaymentRef: text("erp_payment_ref"),
+  erpPaymentDate: text("erp_payment_date"),
   approvalDate: text("approval_date"),
   approvalManager: text("approval_manager"),
   staffName: text("staff_name"),
@@ -74,6 +74,7 @@ export const invoicesTable = pgTable("invoices", {
   advancePayment: boolean("advance_payment").notNull().default(false),
   drill2: boolean("drill_2").notNull().default(false),
   covid19Related: text("covid19_related"),
+  speedchartCode: text("speedchart_code"),
   submitterName: text("submitter_name"),
   submitterEmail: text("submitter_email"),
   submitterUserId: integer("submitter_user_id"),
@@ -142,15 +143,18 @@ export const speedchartsTable = pgTable("speedcharts", {
   fund: text("fund"),
   eny: text("eny"),
   program: text("program"),
+  pcBusinessUnit: text("pc_business_unit"),
   projectID: text("project_id"),
   activityID: text("activity_id"),
   svcLoc: text("svc_loc"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const insertSpeedchartSchema = createInsertSchema(speedchartsTable).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 });
 export type InsertSpeedchart = z.infer<typeof insertSpeedchartSchema>;
 export type Speedchart = typeof speedchartsTable.$inferSelect;
@@ -217,3 +221,22 @@ export const insertInvoiceAttachmentSchema = createInsertSchema(invoiceAttachmen
 });
 export type InsertInvoiceAttachment = z.infer<typeof insertInvoiceAttachmentSchema>;
 export type InvoiceAttachment = typeof invoiceAttachmentsTable.$inferSelect;
+
+export const erpConfigsTable = pgTable("erp_configs", {
+  id: serial("id").primaryKey(),
+  erpName: text("erp_name").notNull(),
+  receiptRefLabel: text("receipt_ref_label").notNull().default("Receipt Reference"),
+  voucherRefLabel: text("voucher_ref_label").notNull().default("Voucher Reference"),
+  paymentRefLabel: text("payment_ref_label").notNull().default("Payment Reference"),
+  paymentDateLabel: text("payment_date_label").notNull().default("Payment Date"),
+  paymentConfirmedLabel: text("payment_confirmed_label").notNull().default("Payment Confirmed"),
+  isActive: boolean("is_active").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertErpConfigSchema = createInsertSchema(erpConfigsTable).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertErpConfig = z.infer<typeof insertErpConfigSchema>;
+export type ErpConfig = typeof erpConfigsTable.$inferSelect;

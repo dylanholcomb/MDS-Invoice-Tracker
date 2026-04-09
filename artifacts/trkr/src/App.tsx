@@ -13,6 +13,8 @@ import SuppliersPage from "@/pages/suppliers";
 import PurchaseOrdersPage from "@/pages/purchase-orders";
 import StaffPage from "@/pages/staff";
 import AgingPage from "@/pages/aging";
+import SpeedchartsPage from "@/pages/speedcharts";
+import FiscalImportPage from "@/pages/fiscal-import";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,6 +106,20 @@ function Router() {
         {() => (
           <AuthGate>
             <AgingPage />
+          </AuthGate>
+        )}
+      </Route>
+      <Route path="/speedcharts">
+        {() => (
+          <AuthGate>
+            <SpeedchartsPage />
+          </AuthGate>
+        )}
+      </Route>
+      <Route path="/fiscal-import">
+        {() => (
+          <AuthGate>
+            <FiscalImportPage />
           </AuthGate>
         )}
       </Route>

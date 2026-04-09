@@ -24,7 +24,7 @@ const STATUSES = [
   "Receipted",
   "Processed in Accounting",
   "Approved in Accounting",
-  "SCO Warrant Issued",
+  "Payment Confirmed",
   "Returned to Submitter",
   "Duplicate",
   "Completed",

@@ -3,6 +3,7 @@ import { eq, and, ilike, or, sql, desc, asc } from "drizzle-orm";
 import { db } from "../lib/db";
 import { invoicesTable, invoiceActivityTable, invoiceAttachmentsTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
+import { sendReturnedEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -174,6 +175,7 @@ router.post("/invoices", async (req, res) => {
       advancePayment: Boolean(body.advancePayment),
       drill2: Boolean(body.drill2),
       covid19Related: body.covid19Related as string | undefined,
+      speedchartCode: body.speedchartCode as string | undefined,
       submitterName: body.submitterName as string | undefined,
       submitterEmail: body.submitterEmail as string | undefined,
     })
@@ -234,10 +236,10 @@ router.patch("/invoices/:id", async (req, res) => {
     "vendorName",
     "contractPONumber",
     "fiscalPONumber",
-    "receiptId",
-    "voucherID",
-    "warrantNumber",
-    "warrantDate",
+    "erpReceiptRef",
+    "erpVoucherRef",
+    "erpPaymentRef",
+    "erpPaymentDate",
     "approvalDate",
     "approvalManager",
     "staffName",
@@ -268,6 +270,7 @@ router.patch("/invoices/:id", async (req, res) => {
     "advancePayment",
     "drill2",
     "covid19Related",
+    "speedchartCode",
   ];
 
   for (const field of allowedFields) {
@@ -310,6 +313,15 @@ router.patch("/invoices/:id", async (req, res) => {
       changedBy: req.session?.username,
       notes: (body.statusNotes as string) ?? null,
     });
+    if (requestedStatus === "Returned to Submitter" && existing.submitterEmail) {
+      sendReturnedEmail({
+        invoiceNumber: existing.invoiceNumber,
+        submitterName: existing.submitterName,
+        submitterEmail: existing.submitterEmail,
+        statusNotes: (body.statusNotes as string) ?? existing.statusNotes,
+        submissionReference: existing.submissionReference,
+      }).catch((err) => console.error("[email] Failed to send return notification:", err));
+    }
   } else if (autoStatus && autoStatus !== statusBeforeAuto) {
     await db.insert(invoiceActivityTable).values({
       invoiceId: id,
@@ -318,7 +330,7 @@ router.patch("/invoices/:id", async (req, res) => {
       statusFrom: existing.invoiceStatus,
       statusTo: finalStatus,
       changedBy: req.session?.username,
-      notes: "Status auto-advanced based on Fi\$Cal field completion",
+      notes: "Status auto-advanced based on ERP field completion",
     });
   } else {
     await db.insert(invoiceActivityTable).values({
@@ -357,7 +369,7 @@ const FISCAL_WORKFLOW_ORDER = [
   "Receipted",
   "Processed in Accounting",
   "Approved in Accounting",
-  "SCO Warrant Issued",
+  "Payment Confirmed",
 ];
 
 function computeFiscalAutoStatus(inv: typeof invoicesTable.$inferSelect): string | null {
@@ -366,13 +378,13 @@ function computeFiscalAutoStatus(inv: typeof invoicesTable.$inferSelect): string
 
   let earnedStatus: string | null = null;
 
-  if (inv.warrantNumber && inv.warrantDate) {
-    earnedStatus = "SCO Warrant Issued";
+  if (inv.erpPaymentRef && inv.erpPaymentDate) {
+    earnedStatus = "Payment Confirmed";
   } else if (inv.approvalDate && inv.approvalManager) {
     earnedStatus = "Approved in Accounting";
-  } else if (inv.voucherID) {
+  } else if (inv.erpVoucherRef) {
     earnedStatus = "Processed in Accounting";
-  } else if (inv.receiptId) {
+  } else if (inv.erpReceiptRef) {
     earnedStatus = "Receipted";
   }
 
