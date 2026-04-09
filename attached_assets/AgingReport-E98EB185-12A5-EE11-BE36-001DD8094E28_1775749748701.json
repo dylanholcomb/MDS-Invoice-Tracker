@@ -1,0 +1,354 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_Excel"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_conversionservice": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_sharedconversionservice_6cf3a"
+        },
+        "api": {
+          "name": "shared_conversionservice"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_bb77f"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/InvoiceTrackingDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "Invoice Tracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Pacific Standard Time",
+            "startTime": "2023-12-28T16:00:00Z",
+            "schedule": {
+              "hours": [
+                "8"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "154be2f2-d829-4b18-b975-7ba4bba5a1fb"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Condition": {
+          "actions": {
+            "List_rows_present_in_a_table": {
+              "runAfter": {},
+              "metadata": {
+                "01PGYE442AYCQD3TYIABC3KUWMFGM34Y5B": "/workingfiles/agingreport.xlsx",
+                "operationMetadataId": "a9a2240f-09bb-4536-b6c6-5b1f3ee6c58d",
+                "tableId": "{D69143D1-2C89-44B6-A00C-C6AE1A94F748}",
+                "01ERBW5F2ZSXNHSJSRHZD32ZKS5UKSDGLD": "/agingreport.xlsx",
+                "01OQG3RMG5736ADX7HCRDIHTWTHREDY7SO": "/Aged_Invoice_Report.xlsx",
+                "01H72PKQHZCXCWSNJ5HBEKR3A7VKZMNMWJ": "/Aged_Invoice_Report.xlsx"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_excelonlinebusiness",
+                  "operationId": "GetItems",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                },
+                "parameters": {
+                  "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                  "drive": "b!B_0CzEgiJEWdS0DvMC88ixx_41lOCZdPjsNx6W2s8DeKN05VGT3lQb0L60JjH30s",
+                  "file": "01H72PKQHZCXCWSNJ5HBEKR3A7VKZMNMWJ",
+                  "table": "{D69143D1-2C89-44B6-A00C-C6AE1A94F748}",
+                  "dateTimeFormat": "Serial Number"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Apply_to_each_2": {
+              "foreach": "@outputs('List_rows_present_in_a_table')?['body/value']",
+              "actions": {
+                "Delete_a_row": {
+                  "runAfter": {},
+                  "metadata": {
+                    "01PGYE442AYCQD3TYIABC3KUWMFGM34Y5B": "/workingfiles/agingreport.xlsx",
+                    "operationMetadataId": "0892c0bc-49ce-4760-a387-4c9daa3f511b",
+                    "tableId": "{D69143D1-2C89-44B6-A00C-C6AE1A94F748}",
+                    "01ERBW5F2ZSXNHSJSRHZD32ZKS5UKSDGLD": "/agingreport.xlsx",
+                    "01OQG3RMG5736ADX7HCRDIHTWTHREDY7SO": "/Aged_Invoice_Report.xlsx"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness",
+                      "operationId": "DeleteItem",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                      "drive": "b!7B1N0IuDqESEs5NBBEdacEYOdyx9AjlCq7mlnSnqG1gQrZ41IjENQJOntdVrpmwJ",
+                      "file": "01OQG3RMG5736ADX7HCRDIHTWTHREDY7SO",
+                      "table": "{D69143D1-2C89-44B6-A00C-C6AE1A94F748}",
+                      "idColumn": "Submission ID",
+                      "id": "@items('Apply_to_each_2')?['Submission ID']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "List_rows_present_in_a_table": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "e0b30f33-5a59-48a1-b025-b66a6f1c297b"
+              },
+              "type": "Foreach"
+            },
+            "Get_items": {
+              "runAfter": {
+                "Apply_to_each_2": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "9f22b1ad-5d06-4241-a4b1-b268d5e6473f"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                  "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')",
+                  "$filter": "((InvoiceStatus eq 'Awaiting Processing') or (InvoiceStatus eq 'Returned to Submitter') or (InvoiceStatus eq 'Duplicate')) and (Modified lt '@{formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Pacific Standard Time','D'),-10),'MM/dd/yyyy')}')",
+                  "$orderby": "Modified asc"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Apply_to_each": {
+              "foreach": "@outputs('Get_items')?['body/value']",
+              "actions": {
+                "clean_status_notes": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "18fb474f-faf8-4108-98d1-fd66e23af547"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_conversionservice",
+                      "operationId": "HtmlToText",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_conversionservice"
+                    },
+                    "parameters": {
+                      "Content": "<p>@{items('Apply_to_each')?['StatusNotes']}</p>"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Add_a_row_into_a_table": {
+                  "runAfter": {
+                    "clean_status_notes": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "01PGYE442AYCQD3TYIABC3KUWMFGM34Y5B": "/workingfiles/agingreport.xlsx",
+                    "operationMetadataId": "8efd06ae-1ff0-4cfa-8c43-150ce2843158",
+                    "tableId": "{D69143D1-2C89-44B6-A00C-C6AE1A94F748}",
+                    "01OQG3RMG5736ADX7HCRDIHTWTHREDY7SO": "/Aged_Invoice_Report.xlsx"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness",
+                      "operationId": "AddRowV2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                      "drive": "b!7B1N0IuDqESEs5NBBEdacEYOdyx9AjlCq7mlnSnqG1gQrZ41IjENQJOntdVrpmwJ",
+                      "file": "01OQG3RMG5736ADX7HCRDIHTWTHREDY7SO",
+                      "table": "{D69143D1-2C89-44B6-A00C-C6AE1A94F748}",
+                      "dateTimeFormat": "ISO 8601",
+                      "item/Unit": "@items('Apply_to_each')?['Unit']",
+                      "item/Supervisor": "@items('Apply_to_each')?['Supervisor']",
+                      "item/Staff Name": "@items('Apply_to_each')?['StaffName/Value']",
+                      "item/Expedite~1Special Handling": "@items('Apply_to_each')?['Expedite']",
+                      "item/Invoice Status": "@items('Apply_to_each')?['InvoiceStatus/Value']",
+                      "item/Invoice Age": "@{div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(utcNow(),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(items('Apply_to_each')?['AccountingReceived'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)} days old",
+                      "item/Acctg Received": "@formatDateTime(convertTimeZone(items('Apply_to_each')?['AccountingReceived'],'UTC','Pacific Standard Time'),'MM/dd/yyyy')",
+                      "item/Modified Age": "@{div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(utcNow(),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(items('Apply_to_each')?['Modified'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)} days since modified",
+                      "item/Last Modified date_x003a_": "@if(empty(items('Apply_to_each')?['Modified']),'',\r\nformatDateTime(convertTimeZone(items('Apply_to_each')?['Modified'],'UTC','Pacific Standard Time'),'MM/dd/yyyy'))",
+                      "item/Last Modified By": "@items('Apply_to_each')?['Editor/Email']",
+                      "item/Invoice Date": "@items('Apply_to_each')?['InvoiceDate']",
+                      "item/Invoice Number": "@items('Apply_to_each')?['Title']",
+                      "item/Invoice Amount": "@items('Apply_to_each')?['InvoiceAmount']",
+                      "item/Supplier Name": "@items('Apply_to_each')?['VendorName']",
+                      "item/Payment Data": "@body('clean_status_notes')",
+                      "item/CDO Received": "@formatDateTime(items('Apply_to_each')?['ProgramRecieved'],'MM/dd/yyyy')",
+                      "item/Last User Edit Date": "@if(empty(items('Apply_to_each')?['InvoiceEditDate']),'null',formatDateTime(items('Apply_to_each')?['InvoiceEditDate'],'MM/dd/yyyy'))",
+                      "item/Submission Notes": "@items('Apply_to_each')?['SubmissionNotes']",
+                      "item/Submission ID": "@items('Apply_to_each')?['ID']",
+                      "item/Status Notes": "@body('clean_status_notes')"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_items": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "f858ab9f-8716-4d88-b4fe-12a940ac319d"
+              },
+              "type": "Foreach"
+            },
+            "Delay": {
+              "runAfter": {
+                "Apply_to_each": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "3d3b0a9d-ea5d-4ee1-a213-a7043f6c4193"
+              },
+              "type": "Wait",
+              "inputs": {
+                "interval": {
+                  "count": 5,
+                  "unit": "Minute"
+                }
+              }
+            },
+            "Send_an_email_(V2)": {
+              "runAfter": {
+                "Get_file_content_using_path": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "e750fc69-6ac5-4349-a342-265ec70b802f"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "Helen.Vo@cdph.ca.gov;Latifah.LaFreniere@cdph.ca.gov;Arveen.Deo@cdph.ca.gov;Austin.Friello@cdph.ca.gov;Doina.Fusneica@cdph.ca.gov;FMBATERS@cdph.ca.gov",
+                  "emailMessage/Subject": "Aging report for Invoice Tracking",
+                  "emailMessage/Body": "<p>Attached is the aging report for @{formatDateTime(utcNow(),'MM/dd/yyyy')}.</p>",
+                  "emailMessage/Attachments": [
+                    {
+                      "Name": "Aged_Invoice_Report.xlsx",
+                      "ContentBytes": "@body('Get_file_content_using_path')"
+                    }
+                  ],
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Get_file_content_using_path": {
+              "runAfter": {
+                "Delay": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "84c49042-5faa-4db4-8dfe-6e8628611b1e"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetFileContentByPath",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                  "path": "/ProcessDocuments/Aged_Invoice_Report.xlsx",
+                  "inferContentType": true
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {},
+          "expression": {
+            "equals": [
+              "@contains('12345', string(dayOfWeek(addHours(utcNow(), -8))))",
+              true
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e62fc4e1-22ba-48c9-85f6-5e276b792040"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,322 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_Excel"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_d4df0"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/InvoiceTrackingDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "Invoice Tracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "b9dc2975-1567-43d9-b435-2b587f1afb61"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnUpdatedItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Condition_3": {
+          "actions": {
+            "Condition": {
+              "actions": {
+                "List_rows_present_in_a_table_2": {
+                  "runAfter": {},
+                  "metadata": {
+                    "01H72PKQC5BWBUB6E4GNCZ7GOPE2C24LE7": "/ClaimSchedule_Detail_Cleanup.xlsx",
+                    "operationMetadataId": "29e3bea1-db14-407c-b45d-7ecc9073106c",
+                    "tableId": "{810BB1C3-21D8-413D-9F49-DB1334888572}"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_excelonlinebusiness",
+                      "operationId": "GetItems",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                    },
+                    "parameters": {
+                      "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                      "drive": "b!B_0CzEgiJEWdS0DvMC88ixx_41lOCZdPjsNx6W2s8DeKN05VGT3lQb0L60JjH30s",
+                      "file": "01H72PKQC5BWBUB6E4GNCZ7GOPE2C24LE7",
+                      "table": "{810BB1C3-21D8-413D-9F49-DB1334888572}",
+                      "dateTimeFormat": "ISO 8601"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Apply_to_each_3": {
+                  "foreach": "@outputs('List_rows_present_in_a_table_2')?['body/value']",
+                  "actions": {
+                    "Condition_4": {
+                      "actions": {
+                        "Get_items_2": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "afbf95c1-85dd-4dff-9b48-8872bfb68486"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_sharepointonline_1",
+                              "operationId": "GetItems",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                            },
+                            "parameters": {
+                              "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                              "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')",
+                              "$filter": "ClaimSchedule eq '@{items('Apply_to_each_3')?['Claim Schedule']}'"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Condition_5": {
+                          "actions": {
+                            "Apply_to_each_4": {
+                              "foreach": "@outputs('Get_items_2')?['body/value']",
+                              "actions": {
+                                "Update_item_2": {
+                                  "runAfter": {},
+                                  "metadata": {
+                                    "operationMetadataId": "f05a9173-434b-4761-8f86-9fd37910f417"
+                                  },
+                                  "type": "OpenApiConnection",
+                                  "inputs": {
+                                    "host": {
+                                      "connectionName": "shared_sharepointonline_1",
+                                      "operationId": "PatchItem",
+                                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                                    },
+                                    "parameters": {
+                                      "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                                      "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')",
+                                      "id": "@items('Apply_to_each_4')?['ID']",
+                                      "item/Title": "@items('Apply_to_each_4')?['Title']",
+                                      "item/WarrantNumber": "@items('Apply_to_each_3')?['Begin Warrant Number']",
+                                      "item/WarrantDate": "@items('Apply_to_each_3')?['Issue Date']",
+                                      "item/InvoiceStatus/Value": "SCO Warrant Issued"
+                                    },
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                }
+                              },
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "b47600cf-5164-4385-b29d-c31a01351990"
+                              },
+                              "type": "Foreach"
+                            }
+                          },
+                          "runAfter": {
+                            "Get_items_2": [
+                              "Succeeded"
+                            ]
+                          },
+                          "expression": {
+                            "not": {
+                              "equals": [
+                                "@length(outputs('Get_items_2')?['body/value'])",
+                                0
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "operationMetadataId": "c4bba55d-6656-49c4-8e2a-8060ab48dbac"
+                          },
+                          "type": "If"
+                        }
+                      },
+                      "runAfter": {
+                        "ClaimScheduleLen_2": [
+                          "Succeeded"
+                        ]
+                      },
+                      "expression": {
+                        "and": [
+                          {
+                            "equals": [
+                              "@outputs('NumberOfWarrants_2')",
+                              1
+                            ]
+                          },
+                          {
+                            "equals": [
+                              "@outputs('ClaimScheduleLen_2')",
+                              7
+                            ]
+                          }
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "1c55b9c6-9b67-48dc-9862-504fa4d084a1"
+                      },
+                      "type": "If"
+                    },
+                    "NumberOfWarrants_2": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "b24bc3ba-b5a6-4198-9dfa-25cd77013a58"
+                      },
+                      "type": "Compose",
+                      "inputs": "@int(items('Apply_to_each_3')?['Total Number Of Warrants'])"
+                    },
+                    "ClaimScheduleNum_2": {
+                      "runAfter": {
+                        "NumberOfWarrants_2": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "269a83f2-9354-41b4-a2ee-5efe4737a3f3"
+                      },
+                      "type": "Compose",
+                      "inputs": "@string(item()?['Claim Schedule'])"
+                    },
+                    "ClaimScheduleLen_2": {
+                      "runAfter": {
+                        "ClaimScheduleNum_2": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "a0b126f1-9fce-43cc-b376-c950cea3d696"
+                      },
+                      "type": "Compose",
+                      "inputs": "@length(item()?['Claim Schedule'])"
+                    }
+                  },
+                  "runAfter": {
+                    "List_rows_present_in_a_table_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "7d70e8c6-093d-405b-b1b0-e46dcd1f9598"
+                  },
+                  "type": "Foreach"
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "and": [
+                  {
+                    "not": {
+                      "equals": [
+                        "@triggerOutputs()?['body/WarrantNumber']",
+                        "@null"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "equals": [
+                        "@triggerOutputs()?['body/WarrantDate']",
+                        "@null"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "1c55b9c6-9b67-48dc-9862-504fa4d084a1"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {},
+          "expression": {
+            "and": [
+              {
+                "not": {
+                  "equals": [
+                    "@triggerOutputs()?['body/ClaimSchedule']",
+                    "@null"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "equals": [
+                    "@triggerOutputs()?['body/ClaimScheduleDate']",
+                    "@null"
+                  ]
+                }
+              }
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6779aab1-7e29-4e58-95d8-b370534d6582"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

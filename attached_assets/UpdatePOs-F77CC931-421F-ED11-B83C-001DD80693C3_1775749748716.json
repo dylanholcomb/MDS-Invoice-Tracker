@@ -1,0 +1,219 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_Excel"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_sharepointonline_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingPOs (invoicet_InvoiceTrackingPOs)": {
+          "defaultValue": "62d04249-8948-4e75-b4c9-1dd56597445d",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingPOs"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Pacific Standard Time",
+            "startTime": "2020-07-16T23:45:00Z",
+            "schedule": {
+              "hours": [
+                "17"
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "021f9311-3481-447b-ba86-f6535a7b7d65"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "List_rows_present_in_a_table": {
+          "runAfter": {},
+          "metadata": {
+            "01OQG3RMDUOHYHX5AOYNFZJWXNOPRWUPFG": "/PO Report.xlsx",
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetItems"
+            },
+            "operationMetadataId": "61fd8bea-69cd-4008-b1cc-75f167cf4732"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_excelonlinebusiness_1']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/drives/@{encodeURIComponent('b!7B1N0IuDqESEs5NBBEdacEYOdyx9AjlCq7mlnSnqG1gQrZ41IjENQJOntdVrpmwJ')}/files/@{encodeURIComponent(encodeURIComponent('01OQG3RMDUOHYHX5AOYNFZJWXNOPRWUPFG'))}/tables/@{encodeURIComponent('1')}/items",
+            "queries": {
+              "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@body('List_rows_present_in_a_table')?['value']",
+          "actions": {
+            "Get_items": {
+              "runAfter": {},
+              "metadata": {
+                "flowSystemMetadata": {
+                  "swaggerOperationId": "GetItems"
+                },
+                "operationMetadataId": "ea1d356b-448a-4e23-ae6b-c4d230e900b7"
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                  }
+                },
+                "method": "get",
+                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingPOs (invoicet_InvoiceTrackingPOs)')))}/items",
+                "queries": {
+                  "$filter": "Title eq '@{items('Apply_to_each')?['PO No_x002e_']}'"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Condition": {
+              "actions": {
+                "Create_item": {
+                  "runAfter": {},
+                  "metadata": {
+                    "flowSystemMetadata": {
+                      "swaggerOperationId": "PostItem"
+                    },
+                    "operationMetadataId": "dceaaa75-9cfc-4300-8b48-ee1976ffaafd"
+                  },
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                      }
+                    },
+                    "method": "post",
+                    "body": {
+                      "Title": "@items('Apply_to_each')?['PO No_x002e_']",
+                      "PODate": "@{addDays('1899-12-30', int(items('Apply_to_each')?['PO Date']), 'yyyy-MM-dd')}",
+                      "AcctgDate": "@{addDays('1899-12-30', int(items('Apply_to_each')?['Acctg Date']), 'yyyy-MM-dd')}",
+                      "PO_x0020_Status": "@items('Apply_to_each')?['PO Status']",
+                      "SupplierID": "@items('Apply_to_each')?['Supplier']",
+                      "SupplierName": "@items('Apply_to_each')?['Supplier Name']",
+                      "SupplierClass": "@items('Apply_to_each')?['Supplier Class']",
+                      "PORef": "@items('Apply_to_each')?['PO Ref']",
+                      "Buyer": "@items('Apply_to_each')?['Buyer']",
+                      "BuyerName": "@items('Apply_to_each')?['Buyer Name']",
+                      "Line": "@items('Apply_to_each')?['Line']",
+                      "LineItemDescription": "@items('Apply_to_each')?['Line Item Description']",
+                      "DstLine": "@items('Apply_to_each')?['Dst Line']",
+                      "Ref": "@items('Apply_to_each')?['Ref']",
+                      "Fund": "@items('Apply_to_each')?['Fund']",
+                      "ENY": "@items('Apply_to_each')?['ENY']",
+                      "Account": "@items('Apply_to_each')?['Account']",
+                      "AltAcct": "@items('Apply_to_each')?['Alt Acct']",
+                      "Program": "@items('Apply_to_each')?['Program']",
+                      "PCBus": "@items('Apply_to_each')?['PC Bus Unit']",
+                      "Project": "@items('Apply_to_each')?['Project']",
+                      "Activity": "@items('Apply_to_each')?['Activity']",
+                      "Rptg_x0020_Structure": "@items('Apply_to_each')?['Rptg Structure']",
+                      "ServLoc": "@items('Apply_to_each')?['Service Location']",
+                      "Budg_x0020_Dt": "@{addDays('1899-12-30', int(items('Apply_to_each')?['Budg Dt']), 'yyyy-MM-dd')}",
+                      "Location": "@items('Apply_to_each')?['Location']",
+                      "EncumberedAmount": "@items('Apply_to_each')?['Encumbered Amount']",
+                      "ExpensedAmount": "@items('Apply_to_each')?['Expensed Amount']",
+                      "RemainingEncumbrance": "@items('Apply_to_each')?['Remaining Encumbrance']",
+                      "MinFinalized": "@items('Apply_to_each')?['Min Finalized']",
+                      "Status": "@items('Apply_to_each')?['Status']",
+                      "BudgetStatus": "@items('Apply_to_each')?['Budget Status']",
+                      "LineBudgetStatus": "@items('Apply_to_each')?['Line Budget Status']",
+                      "ChtfldSt": "@items('Apply_to_each')?['Chtfld St']"
+                    },
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingPOs (invoicet_InvoiceTrackingPOs)')))}/items",
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_items": [
+                  "Succeeded"
+                ]
+              },
+              "expression": {
+                "equals": [
+                  "@length(body('Get_items')?['value'])",
+                  0
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "ede24c13-e86c-4433-9a15-ffbba76c209c"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "List_rows_present_in_a_table": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "02a941ac-7f36-4fc4-b7e9-7fa5b95d8161"
+          },
+          "type": "Foreach"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

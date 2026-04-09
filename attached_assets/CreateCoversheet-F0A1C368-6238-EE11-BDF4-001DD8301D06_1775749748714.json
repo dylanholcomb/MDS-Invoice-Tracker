@@ -1,0 +1,419 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_wordonlinebusiness_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_sharedwordonlinebusiness_c1d41"
+        },
+        "api": {
+          "name": "shared_wordonlinebusiness"
+        }
+      },
+      "shared_onedriveforbusiness_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_sharedonedriveforbusiness_9e913"
+        },
+        "api": {
+          "name": "shared_onedriveforbusiness"
+        }
+      },
+      "shared_conversionservice": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_sharedconversionservice_6cf3a"
+        },
+        "api": {
+          "name": "shared_conversionservice"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_bb77f"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "fb6a1470-6330-4289-9553-c1d38e955fa2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "86aee467-266b-40a1-8a6d-d9554079015f"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetOnNewItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Get_item": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "b3930cf9-13d2-46bd-b912-fe81ce391cce"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')",
+              "id": "@triggerOutputs()?['body/ID']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Populate_a_Microsoft_Word_template": {
+          "runAfter": {
+            "Add_spaces": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQG3RMDYESALEPNRGZFJQLN3GZ7WY4IW": "/Fillable Coversheet.docx",
+            "operationMetadataId": "7602f857-75ed-4711-8037-abef0dce381c",
+            "01OQG3RMCKRAKQ5WTMUZFLON46LKMD73UW": "/Fillable Coversheet.docx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_wordonlinebusiness_2",
+              "operationId": "CreateFileItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_wordonlinebusiness"
+            },
+            "parameters": {
+              "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "drive": "b!7B1N0IuDqESEs5NBBEdacEYOdyx9AjlCq7mlnSnqG1gQrZ41IjENQJOntdVrpmwJ",
+              "file": "01OQG3RMCKRAKQ5WTMUZFLON46LKMD73UW",
+              "dynamicFileSchema/943498012": "@formatDateTime(outputs('Get_item')?['body/InvoiceDate'], 'MM/dd/yyyy')",
+              "dynamicFileSchema/987817155": "@outputs('Get_item')?['body/LocalHealth']",
+              "dynamicFileSchema/1056894198": "@outputs('Get_item')?['body/SpecialHandling']",
+              "dynamicFileSchema/1092823681": "@formatDateTime(outputs('Get_item')?['body/ProgramRecieved'], 'MM/dd/yyyy')",
+              "dynamicFileSchema/1273744781": "@formatDateTime(outputs('Get_item')?['body/AccountingReceived'], 'MM/dd/yyyy')",
+              "dynamicFileSchema/1400400229": "@{outputs('Get_item')?['body/Author/DisplayName']}  -  @{outputs('Get_item')?['body/Author/Email']}",
+              "dynamicFileSchema/1621870832": "@outputs('Get_item')?['body/Expedite']",
+              "dynamicFileSchema/2134675086": "@outputs('Get_item')?['body/VendorID']",
+              "dynamicFileSchema/-601337845": "@outputs('Get_item')?['body/Title']",
+              "dynamicFileSchema/-423877470": "@formatNumber(outputs('Get_item')?['body/InvoiceAmount'],'#,##0.00','EN-US')",
+              "dynamicFileSchema/-2017532963": "@outputs('Get_item')?['body/FiscalYear/Value']",
+              "dynamicFileSchema/-696385171": "@outputs('Get_item')?['body/InvoiceType/Value']",
+              "dynamicFileSchema/-1804690070": "@outputs('Get_item')?['body/VendorName']",
+              "dynamicFileSchema/-566726574": "@outputs('Get_item')?['body/ContractPONUmber']",
+              "dynamicFileSchema/-530186016": "@outputs('Get_item')?['body/Fi_x0024_calPONumber']",
+              "dynamicFileSchema/-722977142": "@outputs('Add_spaces')",
+              "dynamicFileSchema/-2122143931": "@outputs('Get_item')?['body/SubmissionNotes']",
+              "dynamicFileSchema/-657079817": "@outputs('Get_item')?['body/DVBE_x002f_SB_x002f_CMIA']",
+              "dynamicFileSchema/-815492507": "@outputs('Get_item')?['body/COVID19_x0020_Related/Value']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Convert_Word_Document_to_PDF": {
+          "runAfter": {
+            "Create_word_file": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6e1ce56f-0c09-4472-ab65-b95cf8d5060c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_wordonlinebusiness_2",
+              "operationId": "GetFilePDF",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_wordonlinebusiness"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!flZ_lmGVqk6KyGT-pIywHs7BXIz8brxFhA8CuTUqfmNENKUc1AKbQLvQ__6yy6wS",
+              "file": "/workingfiles/@{outputs('Create_word_file')?['body/Name']}"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Create_word_file": {
+          "runAfter": {
+            "Populate_a_Microsoft_Word_template": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "95e77d05-ea37-4ed0-bb4c-aef755b8e675"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_onedriveforbusiness_2",
+              "operationId": "CreateFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness"
+            },
+            "parameters": {
+              "folderPath": "/workingfiles",
+              "name": "@{outputs('Get_item')?['body/ID']}.docx",
+              "body": "@body('Populate_a_Microsoft_Word_template')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "contentTransfer": {
+              "transferMode": "Chunked"
+            }
+          }
+        },
+        "Create_PDF_file": {
+          "runAfter": {
+            "Convert_Word_Document_to_PDF": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2803756d-c65c-4109-8e26-26acbdcad7e1"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_onedriveforbusiness_2",
+              "operationId": "CreateFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness"
+            },
+            "parameters": {
+              "folderPath": "/workingfiles/",
+              "name": "@{outputs('Get_item')?['body/ID']}.pdf",
+              "body": "@body('Convert_Word_Document_to_PDF')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "contentTransfer": {
+              "transferMode": "Chunked"
+            }
+          }
+        },
+        "Html_to_text": {
+          "runAfter": {
+            "Get_item": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "1ce7004e-fec4-40fd-8b9d-dfc7f5bf57a8"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_conversionservice",
+              "operationId": "HtmlToText",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_conversionservice"
+            },
+            "parameters": {
+              "Content": "<p>@{outputs('Get_item')?['body/InvoiceNotes']}</p>"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Add_spaces": {
+          "runAfter": {
+            "Pad_line_breaks": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f74eee6c-3da6-44b9-8150-aba8e3cb10cd"
+          },
+          "type": "Compose",
+          "inputs": "@replace(outputs('Pad_line_breaks'),'|',' | ')"
+        },
+        "Pad_line_breaks": {
+          "runAfter": {
+            "Html_to_text": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9ac5dc27-1bf4-4d2a-b68e-f197d09f484b"
+          },
+          "type": "Compose",
+          "inputs": "@replace(outputs('Html_to_text')?['body'],'||','|       |')"
+        },
+        "Add_attachment": {
+          "runAfter": {
+            "Create_PDF_file": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "402c624c-ea48-4abb-9eab-c16ae0dceb4c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "CreateAttachment",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')",
+              "itemId": "@outputs('Get_item')?['body/ID']",
+              "displayName": "SubID_@{outputs('Get_item')?['body/ID']}_Coversheet.pdf",
+              "body": "@body('Convert_Word_Document_to_PDF')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Delete_DOCX": {
+          "runAfter": {
+            "Delay": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "fe5aaa68-9358-4f90-a1a3-5f591e82d33c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_onedriveforbusiness_2",
+              "operationId": "DeleteFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness"
+            },
+            "parameters": {
+              "id": "@outputs('Create_word_file')?['body/FileLocator']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Delay": {
+          "runAfter": {
+            "Send_an_email_(V2)": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2ea076eb-f8f6-482a-8283-9add12be225e"
+          },
+          "type": "Wait",
+          "inputs": {
+            "interval": {
+              "count": 3,
+              "unit": "Second"
+            }
+          }
+        },
+        "Delete_PDF": {
+          "runAfter": {
+            "Delay": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a5c95dbf-8344-4219-ac8f-623d95f5d10c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_onedriveforbusiness_2",
+              "operationId": "DeleteFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness"
+            },
+            "parameters": {
+              "id": "@outputs('Create_PDF_file')?['body/FileLocator']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Send_an_email_(V2)": {
+          "runAfter": {
+            "Add_attachment": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e09ccd8b-f577-4cb8-ab23-f24fa846dddd"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365_1",
+              "operationId": "SendEmailV2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+            },
+            "parameters": {
+              "emailMessage/To": "@triggerOutputs()?['body/Author/Email']",
+              "emailMessage/Subject": "Invoice #:@{triggerOutputs()?['body/Title']}  Submission ID: @{outputs('Get_item')?['body/ID']}",
+              "emailMessage/Body": "<p>The Invoice # @{outputs('Get_item')?['body/Title']} for Supplier: @{outputs('Get_item')?['body/VendorName']} has been submitted successfully on @{formatDateTime(outputs('Get_item')?['body/AccountingReceived'],'MM/dd/yyyy')}. Your Submission ID is @{outputs('Get_item')?['body/ID']}. To check the status, please use the “ <a href=\"https://app.powerbigov.us/reportEmbed?reportId=eabed60b-234e-48b5-a13d-8c3375d91b6d&amp;appId=2fb2f33b-26d7-4484-8fe0-e1160dc4885f&amp;autoAuth=true&amp;ctid=1f311b51-f6d9-4153-9bac-55e0ef9641b8&amp;config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly93YWJpLXVzLWdvdi1pb3dhLXJlZGlyZWN0LmFuYWx5c2lzLnVzZ292Y2xvdWRhcGkubmV0LyJ9\">Find Invoice</a> ” link.<br>\n<br>\nAttached is an auto-generated coversheet from the information you provided. Please keep for your records.<br>\n</p>",
+              "emailMessage/Attachments": [
+                {
+                  "Name": "@{outputs('Get_item')?['body/Title']}_Coversheet.pdf",
+                  "ContentBytes": "@body('Convert_Word_Document_to_PDF')"
+                }
+              ],
+              "emailMessage/Importance": "Normal"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

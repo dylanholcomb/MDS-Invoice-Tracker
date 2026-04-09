@@ -1,0 +1,269 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_bb77f"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "fb6a1470-6330-4289-9553-c1d38e955fa2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        },
+        "InvoiceReturnURL (invoicet_InvoiceReturnURL)": {
+          "defaultValue": "https://apps.gov.powerapps.us/play/e/b8523949-193f-40e6-aadf-a01415e973ec/a/636867e1-df95-4409-a226-289522adfe55?tenantId=1f311b51-f6d9-4153-9bac-55e0ef9641b8",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceReturnURL"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Pacific Standard Time",
+            "startTime": "2024-02-01T18:00:00Z",
+            "schedule": {
+              "hours": [
+                "10"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "76979af8-78d5-48bf-b86f-dafb3575d939"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Get_items_2": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "9677cb6b-738e-4cae-a74b-8cd7793cb042"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')",
+              "$filter": "(InvoiceStatus eq 'Returned to Submitter') and (((InvoiceReturnDate lt '@{formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Pacific Standard Time','D'),-4),'MM/dd/yyyy')}') and (InvoiceReturnDate gt '@{formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Pacific Standard Time','D'),-6),'MM/dd/yyyy')}')) or ((InvoiceReturnDate lt '@{formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Pacific Standard Time','D'),-9),'MM/dd/yyyy')}') and (InvoiceReturnDate gt '@{formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Pacific Standard Time','D'),-11),'MM/dd/yyyy')}')))"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('Get_items_2')?['body/value']",
+          "actions": {
+            "Compose": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "52232b9c-e7ec-407e-a1cf-afb90d0a0882"
+              },
+              "type": "Compose",
+              "inputs": "@concat(Replace(items('Apply_to_each')?['StaffName/Value'], ' ', '.'), '@cdph.ca.gov')"
+            },
+            "Condition_2": {
+              "actions": {
+                "Send_an_email_(V2)": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "1b263330-543e-49ed-bbf0-56df8e9f9fc8"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365_1",
+                      "operationId": "SendEmailV2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                    },
+                    "parameters": {
+                      "emailMessage/To": "Yuwen.Tan@cdph.ca.gov; @{items('Apply_to_each')?['Author/Email']}",
+                      "emailMessage/Subject": "Return Invoice Reminder: @{div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)} Days",
+                      "emailMessage/Body": "<p>Invoice Number @{items('Apply_to_each')?['Title']} has been in the return queue for @{div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)} days.<br>\n<br>\nPlease work together to get this invoice processed.<br>\n<br>\nUse this link to edit the Invoice: <a href=@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&SubID=@{items('Apply_to_each')?['ID']}>;Edit</a></p>",
+                      "emailMessage/Importance": "Normal"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Compose": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "Condition_3": {
+                    "actions": {
+                      "Send_an_email_(V2)_3": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "1b263330-543e-49ed-bbf0-56df8e9f9fc8"
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_office365_1",
+                            "operationId": "SendEmailV2",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                          },
+                          "parameters": {
+                            "emailMessage/To": "@{items('Apply_to_each')?['Author/Email']};austin.friello@cdph.ca.gov",
+                            "emailMessage/Subject": "Return Invoice Reminder: @{div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)} Days",
+                            "emailMessage/Body": "<p>Invoice Number @{items('Apply_to_each')?['Title']} has been in the return queue for @{div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)} days.<br>\n<br>\nPlease work together to get this invoice processed.<br>\n<br>\nUse this link to edit the Invoice: <a href=@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&SubID=@{items('Apply_to_each')?['ID']}>;Edit</a></p>",
+                            "emailMessage/Importance": "Normal"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    },
+                    "runAfter": {},
+                    "else": {
+                      "actions": {
+                        "Condition": {
+                          "actions": {
+                            "Send_an_email_(V2)_5": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "1b263330-543e-49ed-bbf0-56df8e9f9fc8"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connectionName": "shared_office365_1",
+                                  "operationId": "SendEmailV2",
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                                },
+                                "parameters": {
+                                  "emailMessage/To": "@{items('Apply_to_each')?['Author/Email']};Teresa.Medley@cdph.ca.gov",
+                                  "emailMessage/Subject": "Return Invoice Reminder: @{div(sub(ticks(formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'), 'yyyy-MM-dd')), ticks(formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'], 'yyyy-MM-dd'))), 864000000000)} Days",
+                                  "emailMessage/Body": "<p>Invoice Number @{items('Apply_to_each')?['Title']} has been in the return queue for @{div(sub(ticks(formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'), 'yyyy-MM-dd')), ticks(formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'], 'yyyy-MM-dd'))), 864000000000)} days.<br>\n<br>\nPlease work together to get this invoice processed.<br>\n<br>\nUse this link to edit the Invoice: <a href=@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&SubID=@{items('Apply_to_each')?['ID']}>;Edit</a></p>",
+                                  "emailMessage/Importance": "Normal"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "else": {
+                            "actions": {
+                              "Send_an_email_(V2)_4": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "operationMetadataId": "1b263330-543e-49ed-bbf0-56df8e9f9fc8"
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "connectionName": "shared_office365_1",
+                                    "operationId": "SendEmailV2",
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                                  },
+                                  "parameters": {
+                                    "emailMessage/To": "@{items('Apply_to_each')?['Author/Email']};@{outputs('Compose')}",
+                                    "emailMessage/Subject": "Return Invoice Reminder: @{div(sub(ticks(formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'), 'yyyy-MM-dd')), ticks(formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'], 'yyyy-MM-dd'))), 864000000000)} Days",
+                                    "emailMessage/Body": "<p>Invoice Number @{items('Apply_to_each')?['Title']} has been in the return queue for @{div(sub(ticks(formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time'), 'yyyy-MM-dd')), ticks(formatDateTime(items('Apply_to_each')?['InvoiceReturnDate'], 'yyyy-MM-dd'))), 864000000000)} days.<br>\n<br>\nPlease work together to get this invoice processed.<br>\n<br>\nUse this link to edit the Invoice: <a href=@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&SubID=@{items('Apply_to_each')?['ID']}>;Edit</a></p>",
+                                    "emailMessage/Importance": "Normal"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              }
+                            }
+                          },
+                          "expression": {
+                            "equals": [
+                              "@items('Apply_to_each')?['StaffName/Value']",
+                              "T.J. Medley"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "ca12013e-0561-46ac-9125-853cad1d6456"
+                          },
+                          "type": "If"
+                        }
+                      }
+                    },
+                    "expression": {
+                      "equals": [
+                        "@outputs('Compose')",
+                        "Unassigned@cdph.ca.gov"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "9b0fa8e5-776c-4dba-9ed6-c00f1ec31d87"
+                    },
+                    "type": "If"
+                  }
+                }
+              },
+              "expression": {
+                "equals": [
+                  "@outputs('Compose')",
+                  "COVID-19@cdph.ca.gov"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "6bb0413d-d2b4-4f77-889d-3263f1353434"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Get_items_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "73ecebd1-5621-4528-a646-f5178e813b94"
+          },
+          "type": "Foreach"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

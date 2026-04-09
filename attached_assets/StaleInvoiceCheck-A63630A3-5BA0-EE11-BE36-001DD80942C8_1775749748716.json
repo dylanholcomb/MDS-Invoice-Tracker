@@ -1,0 +1,266 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_bb77f"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "fb6a1470-6330-4289-9553-c1d38e955fa2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Pacific Standard Time",
+            "startTime": "2023-12-21T16:00:00Z",
+            "schedule": {
+              "hours": [
+                "10"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "5b2a0230-a92e-4a37-b18b-ee94f82fa75a"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Condition_3": {
+          "actions": {
+            "Get_items": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "4c9857ec-3c00-4d68-bff1-12e63d687679"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline_1",
+                  "operationId": "GetItems",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                  "table": "@parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')",
+                  "$filter": "((Modified lt '@{addDays(utcNow(),-10)}') and (Modified gt '@{addDays(utcNow(),-45)}')) and ((InvoiceStatus eq 'Awaiting Processing') or (InvoiceStatus eq 'Returned') or (InvoiceStatus eq 'Duplicate'))"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "For_each": {
+              "foreach": "@outputs('Get_items')?['body/value']",
+              "actions": {
+                "Condition": {
+                  "actions": {
+                    "Compose_Staff_Email": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "53a60652-b554-43d6-b114-1b0289456008"
+                      },
+                      "type": "Compose",
+                      "inputs": "@concat(Replace(items('For_each')?['StaffName'].value, ' ', '.'), '@cdph.ca.gov')"
+                    },
+                    "CDO_Age": {
+                      "runAfter": {
+                        "Compose_Manager_Email": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "6319132c-d916-44c8-b1fd-dd791a7e26b9"
+                      },
+                      "type": "Compose",
+                      "inputs": "@div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(utcNow(),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(item()?['ProgramRecieved'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)"
+                    },
+                    "Accounting_Age": {
+                      "runAfter": {
+                        "CDO_Age": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "494fe829-3aae-43b2-a976-b5601cd56891"
+                      },
+                      "type": "Compose",
+                      "inputs": "@div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(utcNow(),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(item()?['AccountingReceived'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)"
+                    },
+                    "Modified_Age": {
+                      "runAfter": {
+                        "Accounting_Age": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "2ed3441e-2d85-4129-bdd8-504ffa2469cc"
+                      },
+                      "type": "Compose",
+                      "inputs": "@div(\r\n    sub(\r\n        ticks(\r\n            formatDateTime(utcNow(),'yyyy-MM-dd'))\r\n        ,\r\n        ticks(\r\n            formatDateTime(item()?['Modified'],'yyyy-MM-dd'))\r\n        )\r\n,864000000000)"
+                    },
+                    "Condition_2": {
+                      "actions": {
+                        "Send_an_email_(V2)_2": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "a6e694ed-203c-4e60-9007-d9ec807f36b6"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_office365",
+                              "operationId": "SendEmailV2",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                            },
+                            "parameters": {
+                              "emailMessage/To": "@outputs('Compose_Staff_Email')",
+                              "emailMessage/Subject": "Stale Invoice: Invoice Number @{items('For_each')?['Title']} has not been modified or processed for @{div(sub(ticks(formatDateTime(utcNow(), 'yyyy-MM-dd')), ticks(formatDateTime(item()?['Modified'], 'yyyy-MM-dd'))), 864000000000)} days.",
+                              "emailMessage/Body": "<p><span style=\"background-color: rgb(255, 255, 255)\">Invoice Number </span>\"@{items('For_each')?['Title']}<span style=\"background-color: rgb(255, 255, 255)\">\" has not been modified or processed since </span>@{formatDateTime(item()?['Modified'], 'MM/dd/yyyy')}<span style=\"background-color: rgb(255, 255, 255)\">. Please work with CDO or management for processing.</span></p>\n<p>Age since CDO Received: @{outputs('CDO_Age')} days</p>\n<p>Age since AP Received: @{outputs('Accounting_Age')} days</p>\n<p>Days since last modified: @{outputs('Modified_Age')} days</p>",
+                              "emailMessage/Cc": "@{outputs('Compose_Manager_Email')}; austin.friello@cdph.ca.gov",
+                              "emailMessage/Importance": "Normal"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "Modified_Age": [
+                          "Succeeded"
+                        ]
+                      },
+                      "else": {
+                        "actions": {
+                          "Send_an_email_(V2)": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "a6e694ed-203c-4e60-9007-d9ec807f36b6"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connectionName": "shared_office365",
+                                "operationId": "SendEmailV2",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                              },
+                              "parameters": {
+                                "emailMessage/To": "@outputs('Compose_Staff_Email')",
+                                "emailMessage/Subject": "Stale Invoice: Invoice Number @{items('For_each')?['Title']} has not been modified or processed for @{div(sub(ticks(formatDateTime(utcNow(), 'yyyy-MM-dd')), ticks(formatDateTime(item()?['Modified'], 'yyyy-MM-dd'))), 864000000000)} days.",
+                                "emailMessage/Body": "<p><span style=\"background-color: rgb(255, 255, 255)\">Invoice Number </span>\"@{items('For_each')?['Title']}<span style=\"background-color: rgb(255, 255, 255)\">\" has not been modified or processed since </span>@{formatDateTime(item()?['Modified'], 'MM/dd/yyyy')}<span style=\"background-color: rgb(255, 255, 255)\">. Please work with CDO or management for processing. This invoice is older than 45 days and will likely incur late fees. Please expedite resolution.</span></p>\n<p>Age since CDO Received: @{outputs('CDO_Age')} days</p>\n<p>Age since AP Received: @{outputs('Accounting_Age')} days</p>\n<p>Days since last modified: @{outputs('Modified_Age')} days</p>",
+                                "emailMessage/Cc": "@{outputs('Compose_Manager_Email')}; austin.friello@cdph.ca.gov",
+                                "emailMessage/Importance": "High"
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        }
+                      },
+                      "expression": {
+                        "greater": [
+                          "@items('For_each')?['InvoiceDate']",
+                          "@addDays(utcNow(),-45)"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "c1d65489-52cd-40e7-89ee-7cafe3b27216"
+                      },
+                      "type": "If"
+                    },
+                    "Compose_Manager_Email": {
+                      "runAfter": {
+                        "Compose_Staff_Email": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "0b5f4c13-0c31-4aa5-a86f-3ba81febcc3b"
+                      },
+                      "type": "Compose",
+                      "inputs": "@if(empty(items('For_each')?['Supervisor']),'',concat(Replace(items('For_each')?['Supervisor'], ' ', '.'), '@cdph.ca.gov'))"
+                    }
+                  },
+                  "runAfter": {},
+                  "expression": {
+                    "and": [
+                      {
+                        "less": [
+                          "@items('For_each')?['Modified']",
+                          "@addDays(utcNow(),-10)"
+                        ]
+                      }
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "c8a50c43-5423-4045-bb8a-d70b92be1199"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {
+                "Get_items": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "84f717f9-e029-4735-b402-b3a34cb51b7a"
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {},
+          "expression": {
+            "equals": [
+              "@contains('12345', string(dayOfWeek(addHours(utcNow(), -8))))",
+              true
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "936421bf-8f49-4995-9618-55da6a1bf01a"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

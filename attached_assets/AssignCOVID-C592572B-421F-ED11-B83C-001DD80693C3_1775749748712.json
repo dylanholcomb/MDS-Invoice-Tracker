@@ -1,0 +1,240 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "fb6a1470-6330-4289-9553-c1d38e955fa2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerBody()?['value']",
+          "metadata": {
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetOnUpdatedItems"
+            },
+            "operationMetadataId": "25b6f8fb-ece7-4333-b5f0-ac5720c657e1"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/onupdateditems",
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Condition": {
+          "actions": {
+            "Condition_2": {
+              "actions": {
+                "Update_item_2": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "2d1f99f7-dec4-42d3-ae32-e15823eb8e60",
+                    "flowSystemMetadata": {
+                      "swaggerOperationId": "PatchItem"
+                    }
+                  },
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                      }
+                    },
+                    "method": "patch",
+                    "body": {
+                      "Title": "@triggerBody()?['Title']",
+                      "Unit": "Unit 2",
+                      "StaffName": {
+                        "Value": "MPOX Queue"
+                      },
+                      "Supervisor": "Austin Friello",
+                      "UpdatedFromFlow": true
+                    },
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {},
+              "else": {
+                "actions": {
+                  "Update_item": {
+                    "runAfter": {},
+                    "metadata": {
+                      "flowSystemMetadata": {
+                        "swaggerOperationId": "PatchItem"
+                      },
+                      "operationMetadataId": "cec7eaf4-904c-4ac1-9302-d1afd7d0b061"
+                    },
+                    "type": "ApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connection": {
+                          "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                        }
+                      },
+                      "method": "patch",
+                      "body": {
+                        "Title": "@triggerBody()?['Title']",
+                        "Unit": "Unit 2",
+                        "StaffName": {
+                          "Value": "COVID-19"
+                        },
+                        "Supervisor": "Austin Friello",
+                        "UpdatedFromFlow": true
+                      },
+                      "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                }
+              },
+              "expression": {
+                "equals": [
+                  "@triggerBody()?['COVID19_x0020_Related']?['Value']",
+                  "MPOX Response"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "90dc7c44-c52c-4c74-a8e3-6a4142fdd46c"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Delay": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "and": [
+              {
+                "or": [
+                  {
+                    "equals": [
+                      "@triggerBody()?['COVID19_x0020_Related']?['Value']",
+                      "COVID-19 response"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@triggerBody()?['COVID19_x0020_Related']?['Value']",
+                      "Testing and Contact Tracing"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@triggerBody()?['COVID19_x0020_Related']?['Value']",
+                      "COVID-19 Stimulus Programs"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@triggerBody()?['COVID19_x0020_Related']?['Value']",
+                      "MPOX Response"
+                    ]
+                  }
+                ]
+              },
+              {
+                "and": [
+                  {
+                    "not": {
+                      "equals": [
+                        "@triggerBody()?['StaffName']?['Value']",
+                        "COVID-19"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "equals": [
+                        "@triggerBody()?['UpdatedFromFlow']",
+                        "@true"
+                      ]
+                    }
+                  },
+                  {
+                    "equals": [
+                      "@triggerBody()?['CalVaxGrant']",
+                      "@false"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@triggerBody()?['SchoolsGrant']",
+                      "@false"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a675ad54-363f-4667-9817-71e7d15a439e"
+          },
+          "type": "If"
+        },
+        "Delay": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "1e84747c-b586-454f-b3e1-d7294f137b8b"
+          },
+          "type": "Wait",
+          "inputs": {
+            "interval": {
+              "count": 30,
+              "unit": "Second"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

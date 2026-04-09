@@ -1,0 +1,235 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_SharePoint"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_Excel"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingSpeedcharts (invoicet_InvoiceTrackingSpeedcharts)": {
+          "defaultValue": "3a005719-ca19-4ddd-b1a8-9dc77cf778de",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSpeedcharts"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "timeZone": "Pacific Standard Time",
+            "schedule": {
+              "weekDays": [
+                "Monday"
+              ],
+              "hours": [
+                "20"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "cc40e86c-5e6e-444c-8bec-45361380c20b"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Apply_to_each": {
+          "foreach": "@outputs('List_rows_present_in_a_table')?['body/value']",
+          "actions": {
+            "CheckEntries": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "461428b1-5a68-46f2-8bd7-07820022636b"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetItems",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                  "table": "@parameters('InvoiceTrackingSpeedcharts (invoicet_InvoiceTrackingSpeedcharts)')",
+                  "$filter": "Title eq '@{items('Apply_to_each')?['SpeedChart']}'"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Condition": {
+              "actions": {
+                "Create_item": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "5f6514fc-3111-499d-8fe0-3cef1b9a1203"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "PostItem",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                      "table": "@parameters('InvoiceTrackingSpeedcharts (invoicet_InvoiceTrackingSpeedcharts)')",
+                      "item/Title": "@items('Apply_to_each')?['SpeedChart']",
+                      "item/Description": "@items('Apply_to_each')?['Description']",
+                      "item/Sequence": "@items('Apply_to_each')?['Seq']",
+                      "item/AppropRef": "@items('Apply_to_each')?['Approp Ref']",
+                      "item/Fund": "@items('Apply_to_each')?['Fund']",
+                      "item/ENY": "@items('Apply_to_each')?['ENY']",
+                      "item/Program": "@items('Apply_to_each')?['Program']",
+                      "item/PCBus": "@items('Apply_to_each')?['PC Bus Unit']",
+                      "item/ProjectID": "@items('Apply_to_each')?['Project ID']",
+                      "item/ActivityID": "@items('Apply_to_each')?['Activity ID']",
+                      "item/SvcLoc": "@items('Apply_to_each')?['Svc Loc']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "CheckEntries": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "Apply_to_each_2": {
+                    "foreach": "@outputs('CheckEntries')?['body/value']",
+                    "actions": {
+                      "Update_item": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "4e539f2c-ae1f-4368-90fa-868335017d96"
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_sharepointonline",
+                            "operationId": "PatchItem",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                          },
+                          "parameters": {
+                            "dataset": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+                            "table": "@parameters('InvoiceTrackingSpeedcharts (invoicet_InvoiceTrackingSpeedcharts)')",
+                            "id": "@items('Apply_to_each_2')?['ID']",
+                            "item/Title": "@items('Apply_to_each')?['SpeedChart']",
+                            "item/Description": "@items('Apply_to_each')?['Description']",
+                            "item/Sequence": "@items('Apply_to_each')?['Seq']",
+                            "item/AppropRef": "@items('Apply_to_each')?['Approp Ref']",
+                            "item/Fund": "@items('Apply_to_each')?['Fund']",
+                            "item/ENY": "@items('Apply_to_each')?['ENY']",
+                            "item/Program": "@items('Apply_to_each')?['Program']",
+                            "item/PCBus": "@items('Apply_to_each')?['PC Bus Unit']",
+                            "item/ProjectID": "@items('Apply_to_each')?['Project ID']",
+                            "item/ActivityID": "@items('Apply_to_each')?['Activity ID']",
+                            "item/SvcLoc": "@items('Apply_to_each')?['Svc Loc']"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    },
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "659555af-64a0-4d26-b56d-92a4e4afef07"
+                    },
+                    "type": "Foreach"
+                  }
+                }
+              },
+              "expression": {
+                "less": [
+                  "@length(outputs('CheckEntries')?['body/value'])",
+                  1
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "59ab42e7-2bba-403f-be49-62164741d4d0"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "List_rows_present_in_a_table": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "05d03a5e-efed-4ff5-8722-01c5f37d1a4d"
+          },
+          "type": "Foreach"
+        },
+        "List_rows_present_in_a_table": {
+          "runAfter": {},
+          "metadata": {
+            "01OQG3RMBSBWVGXQR4QNFJCJTS6FLQMIGM": "/SpeedChart FY2022-23.xlsx",
+            "operationMetadataId": "525ae0b0-5a7d-4c77-8480-da31a5853371",
+            "tableId": "{BEA8435A-30FF-4FAF-A8A1-1E75EF39F7DD}",
+            "01OQG3RMHLDIK2II7MZFGKX23XEOWSTYX2": "/SpeedChart Update.xlsx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_excelonlinebusiness_1",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+            },
+            "parameters": {
+              "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "drive": "b!7B1N0IuDqESEs5NBBEdacEYOdyx9AjlCq7mlnSnqG1gQrZ41IjENQJOntdVrpmwJ",
+              "file": "01OQG3RMHLDIK2II7MZFGKX23XEOWSTYX2",
+              "table": "{BEA8435A-30FF-4FAF-A8A1-1E75EF39F7DD}"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

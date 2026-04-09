@@ -1,0 +1,170 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "fb6a1470-6330-4289-9553-c1d38e955fa2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerBody()?['value']",
+          "metadata": {
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetOnNewItems"
+            },
+            "operationMetadataId": "ccc499c0-1a02-41cf-a0a2-845263b8585e"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/onnewitems",
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Get_items": {
+          "runAfter": {},
+          "metadata": {
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetItems"
+            },
+            "operationMetadataId": "669560e4-41f4-4bee-9dd8-1e77cc0b1b21"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items",
+            "queries": {
+              "$filter": "Title eq '@{replace(triggerBody()?['Title'],'''','''''')}' and VendorID eq '@{triggerBody()?['VendorID']}' and FiscalYear eq '@{triggerBody()?['FiscalYear']?['Value']}'"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Condition": {
+          "actions": {
+            "Update_item": {
+              "runAfter": {},
+              "metadata": {
+                "flowSystemMetadata": {
+                  "swaggerOperationId": "PatchItem"
+                },
+                "operationMetadataId": "f9da32fb-7917-4bd0-bd57-2fe06aca54fe"
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+                  }
+                },
+                "method": "patch",
+                "body": {
+                  "Title": "@triggerBody()?['Title']",
+                  "InvoiceStatus": {
+                    "Value": "Duplicate"
+                  }
+                },
+                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Delay": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@outputs('Compose')",
+              1
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "26ac159c-28de-4fda-881e-a59595d6545a"
+          },
+          "type": "If"
+        },
+        "Compose": {
+          "runAfter": {
+            "Get_items": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3b641e80-6180-45a7-a3b5-1db8db4c1a9d"
+          },
+          "type": "Compose",
+          "inputs": "@length(body('Get_items')?['value'])"
+        },
+        "Delay": {
+          "runAfter": {
+            "Compose": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c36f072a-398b-4bda-a763-89d0bc7a280e"
+          },
+          "type": "Wait",
+          "inputs": {
+            "interval": {
+              "count": 15,
+              "unit": "Second"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,357 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/ADSBpowerapps/InvoiceTracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "fb6a1470-6330-4289-9553-c1d38e955fa2",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerBody()?['value']",
+          "metadata": {
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetOnUpdatedItems"
+            },
+            "operationMetadataId": "1046dce0-6db8-415f-94e2-b8456dd9fe1d"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/onupdateditems",
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Receipt_Check": {
+          "actions": {
+            "Set_to_Receipted": {
+              "runAfter": {},
+              "metadata": {
+                "flowSystemMetadata": {
+                  "swaggerOperationId": "PatchItem"
+                },
+                "operationMetadataId": "fb507707-0bc0-4b00-82aa-49fc924e4c05"
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                  }
+                },
+                "method": "patch",
+                "body": {
+                  "Title": "@triggerBody()?['Title']",
+                  "InvoiceStatus": {
+                    "Value": "Receipted"
+                  }
+                },
+                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {},
+          "else": {
+            "actions": {
+              "Voucher_Check": {
+                "actions": {
+                  "Set_to_Processed_in_Accounting": {
+                    "runAfter": {},
+                    "metadata": {
+                      "flowSystemMetadata": {
+                        "swaggerOperationId": "PatchItem"
+                      },
+                      "operationMetadataId": "2577ce06-fcee-4211-bc31-ebfad0d28ee1"
+                    },
+                    "type": "ApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connection": {
+                          "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                        }
+                      },
+                      "method": "patch",
+                      "body": {
+                        "Title": "@triggerBody()?['Title']",
+                        "InvoiceStatus": {
+                          "Value": "Processed in Accounting"
+                        }
+                      },
+                      "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                },
+                "runAfter": {},
+                "else": {
+                  "actions": {
+                    "Approval_Check": {
+                      "actions": {
+                        "Set_to_Approved_in_Accounting": {
+                          "runAfter": {},
+                          "metadata": {
+                            "flowSystemMetadata": {
+                              "swaggerOperationId": "PatchItem"
+                            },
+                            "operationMetadataId": "25126b32-9212-42c7-b6dc-899514ca5384"
+                          },
+                          "type": "ApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connection": {
+                                "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                              }
+                            },
+                            "method": "patch",
+                            "body": {
+                              "Title": "@triggerBody()?['Title']",
+                              "InvoiceStatus": {
+                                "Value": "Approved in Accounting"
+                              }
+                            },
+                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "else": {
+                        "actions": {
+                          "Warrant_Check": {
+                            "actions": {
+                              "Set_to_Completed": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "flowSystemMetadata": {
+                                    "swaggerOperationId": "PatchItem"
+                                  },
+                                  "operationMetadataId": "53e2f062-a4d6-492d-8a2e-bb558168f8bf"
+                                },
+                                "type": "ApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "connection": {
+                                      "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                                    }
+                                  },
+                                  "method": "patch",
+                                  "body": {
+                                    "Title": "@triggerBody()?['Title']",
+                                    "InvoiceStatus": {
+                                      "Value": "SCO Warrant Issued"
+                                    }
+                                  },
+                                  "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              }
+                            },
+                            "runAfter": {},
+                            "expression": {
+                              "and": [
+                                {
+                                  "not": {
+                                    "equals": [
+                                      "@triggerBody()?['WarrantNumber']",
+                                      "@null"
+                                    ]
+                                  }
+                                },
+                                {
+                                  "not": {
+                                    "equals": [
+                                      "@triggerBody()?['WarrantDate']",
+                                      "@null"
+                                    ]
+                                  }
+                                },
+                                {
+                                  "equals": [
+                                    "@triggerBody()?['InvoiceStatus']?['Value']",
+                                    "Approved in Accounting"
+                                  ]
+                                }
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "511236d2-165d-44e6-a500-c582406031dd"
+                            },
+                            "type": "If"
+                          }
+                        }
+                      },
+                      "expression": {
+                        "and": [
+                          {
+                            "not": {
+                              "equals": [
+                                "@triggerBody()?['ApprovalDate']",
+                                "@null"
+                              ]
+                            }
+                          },
+                          {
+                            "equals": [
+                              "@triggerBody()?['InvoiceStatus']?['Value']",
+                              "Processed in Accounting"
+                            ]
+                          }
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "d51a4a85-4f00-452e-ae35-cd09561801a5"
+                      },
+                      "type": "If"
+                    }
+                  }
+                },
+                "expression": {
+                  "or": [
+                    {
+                      "and": [
+                        {
+                          "not": {
+                            "equals": [
+                              "@triggerBody()?['VoucherDate']",
+                              "@null"
+                            ]
+                          }
+                        },
+                        {
+                          "not": {
+                            "equals": [
+                              "@triggerBody()?['VoucherID']",
+                              "@null"
+                            ]
+                          }
+                        },
+                        {
+                          "equals": [
+                            "@triggerBody()?['InvoiceStatus']?['Value']",
+                            "Receipted"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "and": [
+                        {
+                          "not": {
+                            "equals": [
+                              "@triggerBody()?['VoucherDate']",
+                              "@null"
+                            ]
+                          }
+                        },
+                        {
+                          "not": {
+                            "equals": [
+                              "@triggerBody()?['VoucherID']",
+                              "@null"
+                            ]
+                          }
+                        },
+                        {
+                          "startsWith": [
+                            "@triggerBody()?['InvoiceType']?['Value']",
+                            "Other"
+                          ]
+                        },
+                        {
+                          "equals": [
+                            "@triggerBody()?['InvoiceStatus']",
+                            "Awaiting Processing"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "cefe01d3-a884-4cd7-9fd4-c05f1623a464"
+                },
+                "type": "If"
+              }
+            }
+          },
+          "expression": {
+            "and": [
+              {
+                "not": {
+                  "equals": [
+                    "@triggerBody()?['Receipt']",
+                    "@null"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "equals": [
+                    "@triggerBody()?['ReceiptDate']",
+                    "@null"
+                  ]
+                }
+              },
+              {
+                "equals": [
+                  "@triggerBody()?['InvoiceStatus']?['Value']",
+                  "Awaiting Processing"
+                ]
+              }
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "52b80d14-0c6e-445f-87a0-0d29df6f9cce"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,713 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_bb77f"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_sharepointonline_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_6ce6e"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_sharepointonline_3": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_SharePoint"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceReturnURL (invoicet_InvoiceReturnURL)": {
+          "defaultValue": "https://apps.gov.powerapps.us/play/e/b8523949-193f-40e6-aadf-a01415e973ec/a/636867e1-df95-4409-a226-289522adfe55?tenantId=1f311b51-f6d9-4153-9bac-55e0ef9641b8",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceReturnURL"
+          }
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/InvoiceTrackingDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "Invoice Tracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerBody()?['value']",
+          "metadata": {
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetOnUpdatedItems"
+            },
+            "operationMetadataId": "5c582bec-1729-4933-a2b3-587357b3e7e8"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/onupdateditems",
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Condition": {
+          "actions": {
+            "Condition_2": {
+              "actions": {
+                "Create_Supervisor_email": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "772ea462-d7f3-4769-bc4c-3ffce5fb730e"
+                  },
+                  "type": "Compose",
+                  "inputs": "@concat(Replace(triggerBody()?['Supervisor'], ' ', '.'), '@cdph.ca.gov')"
+                },
+                "Condition_3": {
+                  "actions": {
+                    "Create_Accountant_email_2": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "0dfb8826-8639-4888-8296-806c654fe0ed"
+                      },
+                      "type": "Compose",
+                      "inputs": "@if(\r\n    equals(triggerBody()?['StaffName']?['Value'],'ORF'),\r\n    'Ly.Ginh@cdph.ca.gov', \r\n    if(\r\n        equals(triggerBody()?['StaffName']?['Value'],'Unassigned'),\r\n        'Kenneth.Widjaja@cdph.ca.gov',\r\n    concat(Replace(triggerBody()?['StaffName']?['Value'], ' ', '.'), '@cdph.ca.gov')\r\n))"
+                    },
+                    "Send_an_email_with_StaffName_2": {
+                      "runAfter": {
+                        "Create_Accountant_email_2": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "flowSystemMetadata": {
+                          "swaggerOperationId": "SendEmailV2"
+                        },
+                        "operationMetadataId": "d90b3e0d-97d6-439c-9fff-86f02d49c5a2"
+                      },
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['shared_office365_1']['connectionId']"
+                          }
+                        },
+                        "method": "post",
+                        "body": {
+                          "To": "@triggerBody()?['Author']?['Email']",
+                          "Subject": "Returned to Submitter for Invoice Number: @{triggerBody()?['Title']} Submission ID: @{triggerBody()?['ID']}",
+                          "Body": "<p><span style=\"font-family: calibri; font-size=11\">An invoice that you have submitted has been returned:<br>\n<br>\nInvoice #: @{triggerBody()?['Title']}<br>\nContract #: @{triggerBody()?['ContractPONUmber']}<br>\nPO #: @{triggerBody()?['Fi_x0024_calPONumber']}<br>\nSupplier: @{triggerBody()?['VendorName']}<br>\nAmount: @{triggerBody()?['InvoiceAmount']}<br>\nSubmission ID: @{triggerBody()?['ID']}<br>\nSubmitter: @{triggerBody()?['Author']?['DisplayName']}<br>\n<br>\nInvoice has been returned for the following reason(s):<br>\n@{triggerBody()?['StatusNotes']}\n<br>\nAccounting Staff: @{triggerBody()?['StaffName']?['Value']}<br>\nAccounting Supervisor: @{triggerBody()?['Supervisor']}<br>\n<br>\nUse this link to edit the Invoice: <a href=\"@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&@{triggerBody()?['ID']}\">Edit</a><br><br>\nKindly reply to this email thread with any questions or concerns.</span></p>",
+                          "From": "cdphfmbinvoices@cdph.ca.gov",
+                          "Cc": "katie.nayden@cdph.ca.gov;@{triggerBody()?['Editor']?['Email']};@{outputs('Create_Supervisor_email')}",
+                          "Importance": "High"
+                        },
+                        "path": "/v2/Mail",
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Update_item": {
+                      "runAfter": {
+                        "Send_an_email_with_StaffName_2": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "c464029b-0dab-446b-bf5a-07d79c6444d9",
+                        "flowSystemMetadata": {
+                          "swaggerOperationId": "PatchItem"
+                        }
+                      },
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                          }
+                        },
+                        "method": "patch",
+                        "body": {
+                          "Title": "@triggerBody()?['Title']",
+                          "InvoiceReturnDate": "@{utcNow()}"
+                        },
+                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Create_Supervisor_email": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Condition_5": {
+                        "actions": {
+                          "Update_item_3": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "0d0b5ffe-c1d4-43b7-807c-748e7a1f40e9",
+                              "flowSystemMetadata": {
+                                "swaggerOperationId": "PatchItem"
+                              }
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connection": {
+                                  "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                                }
+                              },
+                              "method": "patch",
+                              "body": {
+                                "Title": "@triggerBody()?['Title']",
+                                "UpdatedFromFlow": true,
+                                "InvoiceReturnDate": "@{utcNow()}"
+                              },
+                              "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          },
+                          "Send_an_email_with_StaffName_3": {
+                            "runAfter": {
+                              "Update_item_3": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "flowSystemMetadata": {
+                                "swaggerOperationId": "SendEmailV2"
+                              },
+                              "operationMetadataId": "5aba4da3-8340-4884-95e8-3cd14276ff91"
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connection": {
+                                  "name": "@parameters('$connections')['shared_office365_1']['connectionId']"
+                                }
+                              },
+                              "method": "post",
+                              "body": {
+                                "To": "@triggerBody()?['Author']?['Email']",
+                                "Subject": "Returned to Submitter for Invoice Number: @{triggerBody()?['Title']} Submission ID: @{triggerBody()?['ID']}",
+                                "Body": "<p><span style=\"font-family: calibri; font-size=11\">An invoice that you have submitted has been returned:<br>\n<br>\nInvoice #: @{triggerBody()?['Title']}<br>\nContract #: @{triggerBody()?['ContractPONUmber']}<br>\nPO #: @{triggerBody()?['Fi_x0024_calPONumber']}<br>\nSupplier: @{triggerBody()?['VendorName']}<br>\nAmount: @{triggerBody()?['InvoiceAmount']}<br>\nSubmission ID: @{triggerBody()?['ID']}<br>\nSubmitter: @{triggerBody()?['Author']?['DisplayName']}<br>\n<br>\nInvoice has been returned for the following reason(s):<br>\n@{triggerBody()?['StatusNotes']}\n<br>\nAccounting Staff: @{triggerBody()?['StaffName']?['Value']}<br>\nAccounting Supervisor: @{triggerBody()?['Supervisor']}<br>\n<br>\nUse this link to edit the Invoice: <a href=\"@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&@{triggerBody()?['ID']}\">Edit</a><br><br>\nKindly reply to this email thread with any questions or concerns.</span></p>",
+                                "From": "cdphfmbinvoices@cdph.ca.gov",
+                                "Cc": "@{triggerBody()?['Editor']?['Email']};Teresa.Medley@cdph.ca.gov;@{outputs('Create_Supervisor_email')}",
+                                "Importance": "High"
+                              },
+                              "path": "/v2/Mail",
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        },
+                        "runAfter": {},
+                        "else": {
+                          "actions": {
+                            "Create_Accountant_email": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "78efec5e-2ee9-45be-9266-b2f13f8a741d"
+                              },
+                              "type": "Compose",
+                              "inputs": "@concat(Replace(triggerBody()?['StaffName']?['Value'], ' ', '.'), '@cdph.ca.gov')"
+                            },
+                            "Condition_7": {
+                              "actions": {
+                                "Update_item_4": {
+                                  "runAfter": {},
+                                  "metadata": {
+                                    "operationMetadataId": "1b086fd7-25da-43a1-a81a-44d7734ab275",
+                                    "flowSystemMetadata": {
+                                      "swaggerOperationId": "PatchItem"
+                                    }
+                                  },
+                                  "type": "ApiConnection",
+                                  "inputs": {
+                                    "host": {
+                                      "connection": {
+                                        "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                                      }
+                                    },
+                                    "method": "patch",
+                                    "body": {
+                                      "Title": "@triggerBody()?['Title']",
+                                      "InvoiceReturnDate": "@{utcNow()}"
+                                    },
+                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                },
+                                "Send_an_email_with_StaffName": {
+                                  "runAfter": {
+                                    "Update_item_4": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "metadata": {
+                                    "flowSystemMetadata": {
+                                      "swaggerOperationId": "SendEmailV2"
+                                    },
+                                    "operationMetadataId": "70fcfcf2-5db5-4c8d-b011-de520d5de922"
+                                  },
+                                  "type": "ApiConnection",
+                                  "inputs": {
+                                    "host": {
+                                      "connection": {
+                                        "name": "@parameters('$connections')['shared_office365_1']['connectionId']"
+                                      }
+                                    },
+                                    "method": "post",
+                                    "body": {
+                                      "To": "@triggerBody()?['Author']?['Email']",
+                                      "Subject": "Returned to Submitter for Invoice Number: @{triggerBody()?['Title']} Submission ID: @{triggerBody()?['ID']}",
+                                      "Body": "<p><span style=\"font-family: calibri; font-size=11\">An invoice that you have submitted has been returned:<br>\n<br>\nInvoice #: @{triggerBody()?['Title']}<br>\nContract #: @{triggerBody()?['ContractPONUmber']}<br>\nPO #: @{triggerBody()?['Fi_x0024_calPONumber']}<br>\nSupplier: @{triggerBody()?['VendorName']}<br>\nAmount: @{triggerBody()?['InvoiceAmount']}<br>\nSubmission ID: @{triggerBody()?['ID']}<br>\nSubmitter: @{triggerBody()?['Author']?['DisplayName']}<br>\n<br>\nInvoice has been returned for the following reason(s):<br>\n@{triggerBody()?['StatusNotes']}\n<br>\nAccounting Staff: @{triggerBody()?['StaffName']?['Value']}<br>\nAccounting Supervisor: @{triggerBody()?['Supervisor']}<br>\n<br>\nUse this link to edit the Invoice: <a href=\"@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&@{triggerBody()?['ID']}\">Edit</a><br><br>\nKindly reply to this email thread with any questions or concerns.</span></p>",
+                                      "From": "cdphfmbinvoices@cdph.ca.gov",
+                                      "Cc": "@{triggerBody()?['Editor']?['Email']};@{outputs('Create_Accountant_email')};@{outputs('Create_Supervisor_email')}",
+                                      "Importance": "High"
+                                    },
+                                    "path": "/v2/Mail",
+                                    "authentication": "@parameters('$authentication')"
+                                  }
+                                }
+                              },
+                              "runAfter": {
+                                "Create_Accountant_email": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "else": {
+                                "actions": {
+                                  "Update_item_5": {
+                                    "runAfter": {},
+                                    "metadata": {
+                                      "operationMetadataId": "543ea822-2331-4404-b39d-c1632e507bc7",
+                                      "flowSystemMetadata": {
+                                        "swaggerOperationId": "PatchItem"
+                                      }
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                      "host": {
+                                        "connection": {
+                                          "name": "@parameters('$connections')['shared_sharepointonline_2']['connectionId']"
+                                        }
+                                      },
+                                      "method": "patch",
+                                      "body": {
+                                        "Title": "@triggerBody()?['Title']",
+                                        "InvoiceReturnDate": "@{utcNow()}"
+                                      },
+                                      "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                                      "authentication": "@parameters('$authentication')"
+                                    }
+                                  },
+                                  "Send_an_email_with_StaffName_4": {
+                                    "runAfter": {
+                                      "Update_item_5": [
+                                        "Succeeded"
+                                      ]
+                                    },
+                                    "metadata": {
+                                      "flowSystemMetadata": {
+                                        "swaggerOperationId": "SendEmailV2"
+                                      },
+                                      "operationMetadataId": "ef621ca6-5ec6-4622-8f67-1488c8381642"
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                      "host": {
+                                        "connection": {
+                                          "name": "@parameters('$connections')['shared_office365_1']['connectionId']"
+                                        }
+                                      },
+                                      "method": "post",
+                                      "body": {
+                                        "To": "@triggerBody()?['Author']?['Email']",
+                                        "Subject": "Returned to Submitter for Invoice Number: @{triggerBody()?['Title']} Submission ID: @{triggerBody()?['ID']}",
+                                        "Body": "<p><span style=\"font-family: calibri; font-size=11\">An invoice that you have submitted has been returned:<br>\n<br>\nInvoice #: @{triggerBody()?['Title']}<br>\nContract #: @{triggerBody()?['ContractPONUmber']}<br>\nPO #: @{triggerBody()?['Fi_x0024_calPONumber']}<br>\nSupplier: @{triggerBody()?['VendorName']}<br>\nAmount: @{triggerBody()?['InvoiceAmount']}<br>\nSubmission ID: @{triggerBody()?['ID']}<br>\nSubmitter: @{triggerBody()?['Author']?['DisplayName']}<br>\n<br>\nInvoice has been returned for the following reason(s):<br>\n@{triggerBody()?['StatusNotes']}\n<br>\nAccounting Staff: @{triggerBody()?['StaffName']?['Value']}<br>\nAccounting Supervisor: @{triggerBody()?['Supervisor']}<br>\n<br>\nUse this link to edit the Invoice: <a href=\"@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}?screen=Edit&@{triggerBody()?['ID']}\">Edit</a><br><br>\nKindly reply to this email thread with any questions or concerns.</span></p>",
+                                        "From": "cdphfmbinvoices@cdph.ca.gov",
+                                        "Cc": "@{triggerBody()?['Editor']?['Email']};Ly.Ginh@cdph.ca.gov;@{outputs('Create_Supervisor_email')}",
+                                        "Importance": "High"
+                                      },
+                                      "path": "/v2/Mail",
+                                      "authentication": "@parameters('$authentication')"
+                                    }
+                                  }
+                                }
+                              },
+                              "expression": {
+                                "not": {
+                                  "contains": [
+                                    "@triggerBody()?['StaffName']?['Value']",
+                                    "ORF"
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "operationMetadataId": "6b7e09e2-e6a4-4674-9792-8d1a4ee94ea1"
+                              },
+                              "type": "If"
+                            }
+                          }
+                        },
+                        "expression": {
+                          "equals": [
+                            "@triggerBody()?['StaffName']?['Value']",
+                            "T.J. Medley"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "28ba6d03-a5a6-49e6-ad6f-4e6bdc8bfd66"
+                        },
+                        "type": "If"
+                      }
+                    }
+                  },
+                  "expression": {
+                    "equals": [
+                      "@triggerBody()?['StaffName']?['Value']",
+                      "COVID-19"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "993d74e7-c281-41e7-ad95-a1a96b46784a"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {},
+              "else": {
+                "actions": {
+                  "Condition_4": {
+                    "actions": {
+                      "Send_an_email_(V2)": {
+                        "runAfter": {},
+                        "metadata": {
+                          "flowSystemMetadata": {
+                            "swaggerOperationId": "SendEmailV2"
+                          },
+                          "operationMetadataId": "4916ec35-0ed6-4cb5-9644-a8028e17cea4"
+                        },
+                        "type": "ApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connection": {
+                              "name": "@parameters('$connections')['shared_office365_1']['connectionId']"
+                            }
+                          },
+                          "method": "post",
+                          "body": {
+                            "To": "@triggerBody()?['Author']?['Email']",
+                            "Subject": "Returned to Submitter for Invoice Number: @{triggerBody()?['Title']} Submission ID: @{triggerBody()?['ID']}",
+                            "Body": "<p><span style=\"color: rgb(226,80,65)\"><strong>Please include a copy of this message with your reply. Please 'Reply All' to respond to this message.<br>\n</strong></span><br>\nThe submission ID: @{triggerBody()?['ID']} &nbsp;for Invoice Number &nbsp;@{triggerBody()?['Title']} &nbsp;for PO# @{triggerBody()?['Fi_x0024_calPONumber']} has been returned with the following Notes:<br>\n@{triggerBody()?['StatusNotes']}<br>\n<br>\nUse this link to edit the Invoice: <a href=\"@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}&amp;screen=Edit&SubID=@{triggerBody()?['ID']}\">Edit</a><br>\n<br>\nPlease take the requested actions and contact Yuwen Tan at Yuwen.Tan@cdph.ca.gov to resolve this issue.</p>",
+                            "From": "cdphfmbinvoices@cdph.ca.gov",
+                            "Cc": "Yuwen.Tan@cdph.ca.gov;Arveen.Deo@cdph.ca.gov;Latifah.LaFreniere@cdph.ca.gov;Helen.Vo@cdph.ca.gov",
+                            "Importance": "High"
+                          },
+                          "path": "/v2/Mail",
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      },
+                      "Update_item_6": {
+                        "runAfter": {
+                          "Send_an_email_(V2)": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "8321c820-1cf8-4752-a19a-cdb53e8b8a86",
+                          "flowSystemMetadata": {
+                            "swaggerOperationId": "PatchItem"
+                          }
+                        },
+                        "type": "ApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connection": {
+                              "name": "@parameters('$connections')['shared_sharepointonline_3']['connectionId']"
+                            }
+                          },
+                          "method": "patch",
+                          "body": {
+                            "Title": "@triggerBody()?['Title']",
+                            "InvoiceReturnDate": "@{utcNow()}"
+                          },
+                          "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    },
+                    "runAfter": {},
+                    "else": {
+                      "actions": {
+                        "Condition_6": {
+                          "actions": {
+                            "Create_Accountant_email_3": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "0dfb8826-8639-4888-8296-806c654fe0ed"
+                              },
+                              "type": "Compose",
+                              "inputs": "@concat(Replace(triggerBody()?['StaffName']?['Value'], ' ', '.'), '@cdph.ca.gov')"
+                            },
+                            "Send_an_email_(V2)_2": {
+                              "runAfter": {
+                                "Create_Accountant_email_3": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "flowSystemMetadata": {
+                                  "swaggerOperationId": "SendEmailV2"
+                                },
+                                "operationMetadataId": "eb9a4cbd-03a1-48f7-9df0-8ba7533c8870"
+                              },
+                              "type": "ApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connection": {
+                                    "name": "@parameters('$connections')['shared_office365_1']['connectionId']"
+                                  }
+                                },
+                                "method": "post",
+                                "body": {
+                                  "To": "@triggerBody()?['Author']?['Email']",
+                                  "Subject": "Returned to Submitter for Invoice Number: @{triggerBody()?['Title']} Submission ID: @{triggerBody()?['ID']}",
+                                  "Body": "<p><span style=\"color: rgb(226,80,65)\"><strong>Please include a copy of this message with your reply. Please 'Reply All' to respond to this message.</strong></span><br>\n<br>\nThe submission ID: <strong></strong><strong>@{triggerBody()?['ID']}</strong><strong></strong> &nbsp;for Invoice Number &nbsp;<strong></strong><strong>@{triggerBody()?['Title']}</strong><strong></strong> &nbsp;for PO# <strong></strong><strong>@{triggerBody()?['Fi_x0024_calPONumber']}</strong><strong></strong> has been returned with the following Notes:<br>\n@{triggerBody()?['StatusNotes']}<br>\n<br>\nUse this link to edit the Invoice: <a href=\"@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}&amp;screen=Edit&SubID=@{triggerBody()?['ID']}\">Edit</a><br>\n<br>\nPlease take the requested actions and contact @{triggerBody()?['StaffName']?['Value']} at @{outputs('Create_Accountant_email_3')} to resolve this issue.</p>",
+                                  "From": "cdphfmbinvoices@cdph.ca.gov",
+                                  "Cc": "@{triggerBody()?['Editor']?['Email']};@{outputs('Create_Accountant_email_3')}",
+                                  "Importance": "High"
+                                },
+                                "path": "/v2/Mail",
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            },
+                            "Update_item_7": {
+                              "runAfter": {
+                                "Send_an_email_(V2)_2": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "f76142b5-3fa8-4f37-8a44-eb6e4cfeee59",
+                                "flowSystemMetadata": {
+                                  "swaggerOperationId": "PatchItem"
+                                }
+                              },
+                              "type": "ApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connection": {
+                                    "name": "@parameters('$connections')['shared_sharepointonline_3']['connectionId']"
+                                  }
+                                },
+                                "method": "patch",
+                                "body": {
+                                  "Title": "@triggerBody()?['Title']",
+                                  "InvoiceReturnDate": "@{utcNow()}"
+                                },
+                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "else": {
+                            "actions": {
+                              "Send_an_email_(V2)_3": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "flowSystemMetadata": {
+                                    "swaggerOperationId": "SendEmailV2"
+                                  },
+                                  "operationMetadataId": "3892e719-4000-4696-9716-b3a98f354533"
+                                },
+                                "type": "ApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "connection": {
+                                      "name": "@parameters('$connections')['shared_office365_1']['connectionId']"
+                                    }
+                                  },
+                                  "method": "post",
+                                  "body": {
+                                    "To": "@triggerBody()?['Author']?['Email']",
+                                    "Subject": "Returned to Submitter for Invoice Number: @{triggerBody()?['Title']} Submission ID: @{triggerBody()?['ID']}",
+                                    "Body": "<p><span style=\"color: rgb(226,80,65)\"><strong>Please include a copy of this message with your reply. Please 'Reply All' to respond to this message.</strong></span><br>\n<br>\nThe submission ID: @{triggerBody()?['ID']} &nbsp;for Invoice Number &nbsp;@{triggerBody()?['Title']} &nbsp;for PO# @{triggerBody()?['Fi_x0024_calPONumber']} has been returned with the following Notes:<br>\n@{triggerBody()?['StatusNotes']}<br>\n<br>\nUse this link to edit the Invoice: <a href=\"@{parameters('InvoiceReturnURL (invoicet_InvoiceReturnURL)')}&amp;screen=Edit&SubID=@{triggerBody()?['ID']}\">Edit</a><br>\n</a><br>\nPlea se take the requested actions and contact @{triggerBody()?['StaffName']?['Value']} to resolve this issue.</p>",
+                                    "From": "cdphfmbinvoices@cdph.ca.gov",
+                                    "Cc": "@{triggerBody()?['Editor']?['Email']}Ly.Ginh@cdph.ca.gov",
+                                    "Importance": "High"
+                                  },
+                                  "path": "/v2/Mail",
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              },
+                              "Update_item_2": {
+                                "runAfter": {
+                                  "Send_an_email_(V2)_3": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "metadata": {
+                                  "operationMetadataId": "14f61cea-29b8-4056-8bd0-cf1a67674114",
+                                  "flowSystemMetadata": {
+                                    "swaggerOperationId": "PatchItem"
+                                  }
+                                },
+                                "type": "ApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "connection": {
+                                      "name": "@parameters('$connections')['shared_sharepointonline_3']['connectionId']"
+                                    }
+                                  },
+                                  "method": "patch",
+                                  "body": {
+                                    "Title": "@triggerBody()?['Title']",
+                                    "UpdatedFromFlow": true,
+                                    "InvoiceReturnDate": "@{utcNow()}"
+                                  },
+                                  "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(triggerBody()?['ID'])}",
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              }
+                            }
+                          },
+                          "expression": {
+                            "not": {
+                              "contains": [
+                                "@triggerBody()?['StaffName']?['Value']",
+                                "ORF"
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "operationMetadataId": "e17d9b70-dd22-49f9-8cd3-3c4def918acf"
+                          },
+                          "type": "If"
+                        }
+                      }
+                    },
+                    "expression": {
+                      "equals": [
+                        "@triggerBody()?['StaffName']?['Value']",
+                        "COVID-19"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "5eda73bc-6d7d-4f18-b428-ebd9f279341a"
+                    },
+                    "type": "If"
+                  }
+                }
+              },
+              "expression": {
+                "and": [
+                  {
+                    "not": {
+                      "equals": [
+                        "@triggerBody()?['Supervisor']",
+                        "'Vacant'"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "equals": [
+                        "@triggerBody()?['Supervisor']",
+                        "@null"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "equals": [
+                        "@triggerBody()?['StaffName']?['Value']",
+                        "COVID-19"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "adc71766-8f52-4c69-8042-e757c843b2d1"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {},
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@triggerBody()?['InvoiceStatus']?['Value']",
+                  "Returned to Submitter"
+                ]
+              },
+              {
+                "not": {
+                  "equals": [
+                    "@triggerBody()?['StatusNotes']",
+                    "@null"
+                  ]
+                }
+              },
+              {
+                "equals": [
+                  "@triggerBody()?['InvoiceReturnDate']",
+                  "@null"
+                ]
+              }
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c42a3057-2911-447e-860d-b6a53d778edf"
+          },
+          "type": "If"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

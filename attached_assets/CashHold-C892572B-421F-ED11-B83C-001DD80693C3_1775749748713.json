@@ -1,0 +1,375 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_Excel"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "invoicet_SharePoint"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/InvoiceTrackingDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "Invoice Tracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Pacific Standard Time",
+            "startTime": "2020-02-27T16:00:00Z",
+            "schedule": {
+              "hours": [
+                "10"
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "3e8d40c8-e85d-493c-9191-58040f33571c"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Get_Rows_for_Release": {
+          "runAfter": {
+            "Place_Holds": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQG3RMDZC3QJY3LGTBAZX2RP3YDELX4V": "/Cash Hold Voucher List.xlsx",
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetItems"
+            },
+            "operationMetadataId": "d2123102-0e39-4b85-bc14-1fa3049a5c23",
+            "01H72PKQC4MQCG2V46JJCIA666GSCEVW4W": "/Cash Hold Voucher List.xlsx"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_excelonlinebusiness']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/drives/@{encodeURIComponent('b!B_0CzEgiJEWdS0DvMC88ixx_41lOCZdPjsNx6W2s8DeKN05VGT3lQb0L60JjH30s')}/files/@{encodeURIComponent(encodeURIComponent('01H72PKQC4MQCG2V46JJCIA666GSCEVW4W'))}/tables/@{encodeURIComponent('{00000000-000C-0000-FFFF-FFFF00000000}')}/items",
+            "queries": {
+              "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')",
+              "dateTimeFormat": "ISO 8601"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 500
+            }
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@body('Get_Rows_for_Release')?['value']",
+          "actions": {
+            "Compose_2": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "14e0e7c9-1f35-42ae-b065-b210bdb78484"
+              },
+              "type": "Compose",
+              "inputs": "@formatDateTime(items('Apply_to_each')?['AR Release Date'],'MM/dd/yyyy')"
+            },
+            "Condition": {
+              "actions": {
+                "Get_items": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "cd34f137-dac0-478a-bdaa-56614f482884",
+                    "flowSystemMetadata": {
+                      "swaggerOperationId": "GetItems"
+                    }
+                  },
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+                      }
+                    },
+                    "method": "get",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items",
+                    "queries": {
+                      "$filter": "VoucherID eq '@{items('Apply_to_each')?['Voucher ID']}'"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Apply_to_each_2": {
+                  "foreach": "@body('Get_items')?['value']",
+                  "actions": {
+                    "Condition_2": {
+                      "actions": {
+                        "Update_item": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "ff33d91a-ebcd-44c4-9944-df8fcaa43820",
+                            "flowSystemMetadata": {
+                              "swaggerOperationId": "PatchItem"
+                            }
+                          },
+                          "type": "ApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connection": {
+                                "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+                              }
+                            },
+                            "method": "patch",
+                            "body": {
+                              "Title": "@items('Apply_to_each_2')?['Title']",
+                              "InvoiceStatus": {
+                                "Value": "Awaiting Processing"
+                              },
+                              "CashHold": false
+                            },
+                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(items('Apply_to_each_2')?['ID'])}",
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "expression": {
+                        "equals": [
+                          "@empty(body('Get_items')?['value'])",
+                          "@false"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "f0f67796-2bef-4fef-857a-6f8d9c931884"
+                      },
+                      "type": "If"
+                    }
+                  },
+                  "runAfter": {
+                    "Get_items": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "8504a55a-8ba6-4d87-bcb4-753d237f8336"
+                  },
+                  "type": "Foreach"
+                }
+              },
+              "runAfter": {
+                "Compose_2": [
+                  "Succeeded"
+                ]
+              },
+              "expression": {
+                "and": [
+                  {
+                    "lessOrEquals": [
+                      "@formatDateTime(items('Apply_to_each')?['AR Release Date'],'MM/dd/yyyy')",
+                      "@formatDateTime(utcNow(),'MM/dd/yyyy')"
+                    ]
+                  },
+                  {
+                    "not": {
+                      "equals": [
+                        "@items('Apply_to_each')?['Voucher ID']",
+                        "@null"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b9198d1c-a3e8-4503-8747-f3fafb97d5ec"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Compose": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "22a21733-5a6e-4f96-86a8-59e73fe60ebe"
+          },
+          "type": "Foreach"
+        },
+        "List_rows_for_Hold": {
+          "runAfter": {},
+          "metadata": {
+            "01H72PKQC4MQCG2V46JJCIA666GSCEVW4W": "/Cash Hold Voucher List.xlsx",
+            "operationMetadataId": "5350cb36-3f6a-43bf-bf41-88925bebb763",
+            "flowSystemMetadata": {
+              "swaggerOperationId": "GetItems"
+            }
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_excelonlinebusiness']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/drives/@{encodeURIComponent('b!B_0CzEgiJEWdS0DvMC88ixx_41lOCZdPjsNx6W2s8DeKN05VGT3lQb0L60JjH30s')}/files/@{encodeURIComponent(encodeURIComponent('01H72PKQC4MQCG2V46JJCIA666GSCEVW4W'))}/tables/@{encodeURIComponent('{00000000-000C-0000-FFFF-FFFF01000000}')}/items",
+            "queries": {
+              "source": "@parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Place_Holds": {
+          "foreach": "@body('List_rows_for_Hold')?['value']",
+          "actions": {
+            "Condition_4": {
+              "actions": {
+                "Get_items_3": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "6e0ef3f0-3049-4db0-933c-0f781cbb47c9",
+                    "flowSystemMetadata": {
+                      "swaggerOperationId": "GetItems"
+                    }
+                  },
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+                      }
+                    },
+                    "method": "get",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items",
+                    "queries": {
+                      "$filter": "VoucherID eq '@{items('Place_Holds')?['Voucher ID']}'"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Apply_to_each_4": {
+                  "foreach": "@body('Get_items_3')?['value']",
+                  "actions": {
+                    "Update_item_2": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "88619f92-957e-479e-b697-b6995534108e"
+                      },
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+                          }
+                        },
+                        "method": "patch",
+                        "body": {
+                          "Title": "@items('Apply_to_each_4')?['Title']",
+                          "InvoiceStatus": {
+                            "Value": "Cash Hold"
+                          },
+                          "CashHold": true,
+                          "UpdatedFromFlow": false,
+                          "SnapNurse": false,
+                          "CalVaxGrant": false,
+                          "SchoolsGrant": false,
+                          "AirQualityCMP": false
+                        },
+                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(items('Apply_to_each_4')?['ID'])}",
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Get_items_3": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "ea2b2652-127f-4774-bdfe-defc85dcbda8"
+                  },
+                  "type": "Foreach"
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "not": {
+                  "equals": [
+                    "@items('Place_Holds')?['Voucher ID']",
+                    "@null"
+                  ]
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "a3769b04-f1b8-42a4-8a54-0d20f80ec1ca"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "List_rows_for_Hold": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bc226a3d-77cf-4f6c-b2a8-ca268edfb93c"
+          },
+          "type": "Foreach"
+        },
+        "Compose": {
+          "runAfter": {
+            "Get_Rows_for_Release": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "994d0bb0-8f88-4a52-a1db-43bd7d037975"
+          },
+          "type": "Compose",
+          "inputs": "@formatDateTime(utcNow(),'MM/dd/yyyy')"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

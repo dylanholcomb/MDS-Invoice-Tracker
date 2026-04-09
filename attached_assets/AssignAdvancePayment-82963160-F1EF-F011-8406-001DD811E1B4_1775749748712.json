@@ -1,0 +1,144 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_d4df0"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "InvoiceTrackingSite (invoicet_InvoiceTrackingSite)": {
+          "defaultValue": "https://cdph.sharepoint.com/sites/InvoiceTrackingDev",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingSite"
+          }
+        },
+        "InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)": {
+          "defaultValue": "Invoice Tracking",
+          "type": "String",
+          "metadata": {
+            "schemaName": "invoicet_InvoiceTrackingInvoices"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "metadata": {
+            "operationMetadataId": "0c8b337f-4088-46a0-966f-05fd1b056d92"
+          },
+          "type": "ApiConnection",
+          "inputs": {
+            "host": {
+              "connection": {
+                "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+              }
+            },
+            "method": "get",
+            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/onnewitems",
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Delay": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "1e84747c-b586-454f-b3e1-d7294f137b8b"
+          },
+          "type": "Wait",
+          "inputs": {
+            "interval": {
+              "count": 30,
+              "unit": "Second"
+            }
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@triggerBody()?['value']",
+          "actions": {
+            "Condition": {
+              "actions": {
+                "Update_item": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "2b5e8472-9491-4dc2-8256-bc0e86419110"
+                  },
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['shared_sharepointonline']['connectionId']"
+                      }
+                    },
+                    "method": "patch",
+                    "body": {
+                      "Title": "@items('Apply_to_each')?['Title']",
+                      "StaffName": {
+                        "Value": "Advance Payment"
+                      }
+                    },
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingSite (invoicet_InvoiceTrackingSite)')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('InvoiceTrackingInvoices (invoicet_InvoiceTrackingInvoices)')))}/items/@{encodeURIComponent(items('Apply_to_each')?['ID'])}",
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "and": [
+                  {
+                    "and": [
+                      {
+                        "not": {
+                          "equals": [
+                            "@items('Apply_to_each')?['AdvancePayment']?['Value']",
+                            "No"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "a675ad54-363f-4667-9817-71e7d15a439e"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Delay": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3939e39a-2d65-4784-b9db-3d41b60fd96c"
+          },
+          "type": "Foreach"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
