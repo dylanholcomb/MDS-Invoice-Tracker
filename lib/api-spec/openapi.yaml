@@ -1,22 +1,35 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: TRKR Invoice Tracking API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: invoices
+    description: Invoice management
+  - name: suppliers
+    description: Supplier reference data
+  - name: purchase-orders
+    description: Purchase orders
+  - name: speedcharts
+    description: Speedchart reference data
+  - name: staff
+    description: Staff routing configuration
+  - name: dashboard
+    description: Dashboard and analytics
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +37,512 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      summary: List invoices with filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: unit
+          in: query
+          schema:
+            type: string
+        - name: staffName
+          in: query
+          schema:
+            type: string
+        - name: fiscalYear
+          in: query
+          schema:
+            type: string
+        - name: expedite
+          in: query
+          schema:
+            type: boolean
+        - name: cashHold
+          in: query
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: sortDir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceListResponse"
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      summary: Submit a new invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvoiceBody"
+      responses:
+        "201":
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "409":
+          description: Duplicate invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateCheckResult"
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      summary: Get invoice by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invoice detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateInvoice
+      tags: [invoices]
+      summary: Update invoice fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInvoiceBody"
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+    delete:
+      operationId: deleteInvoice
+      tags: [invoices]
+      summary: Delete invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /invoices/check-duplicate:
+    post:
+      operationId: checkDuplicate
+      tags: [invoices]
+      summary: Check if an invoice is a duplicate before submitting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DuplicateCheckBody"
+      responses:
+        "200":
+          description: Duplicate check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateCheckResult"
+
+  /suppliers:
+    get:
+      operationId: listSuppliers
+      tags: [suppliers]
+      summary: List suppliers
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of suppliers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Supplier"
+    post:
+      operationId: createSupplier
+      tags: [suppliers]
+      summary: Create a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSupplierBody"
+      responses:
+        "201":
+          description: Created supplier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+
+  /suppliers/{id}:
+    get:
+      operationId: getSupplier
+      tags: [suppliers]
+      summary: Get supplier by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Supplier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+    patch:
+      operationId: updateSupplier
+      tags: [suppliers]
+      summary: Update supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSupplierBody"
+      responses:
+        "200":
+          description: Updated supplier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+
+  /purchase-orders:
+    get:
+      operationId: listPurchaseOrders
+      tags: [purchase-orders]
+      summary: List purchase orders
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: supplierID
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of POs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurchaseOrder"
+
+  /purchase-orders/{id}:
+    get:
+      operationId: getPurchaseOrder
+      tags: [purchase-orders]
+      summary: Get purchase order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Purchase order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseOrder"
+
+  /speedcharts:
+    get:
+      operationId: listSpeedcharts
+      tags: [speedcharts]
+      summary: List speedcharts
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: List of speedcharts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Speedchart"
+
+  /staff:
+    get:
+      operationId: listStaff
+      tags: [staff]
+      summary: List staff routing rules
+      responses:
+        "200":
+          description: List of staff
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StaffRoute"
+    post:
+      operationId: createStaff
+      tags: [staff]
+      summary: Create a staff routing rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStaffBody"
+      responses:
+        "201":
+          description: Created staff entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffRoute"
+
+  /staff/{id}:
+    patch:
+      operationId: updateStaff
+      tags: [staff]
+      summary: Update staff routing rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStaffBody"
+      responses:
+        "200":
+          description: Updated staff entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffRoute"
+    delete:
+      operationId: deleteStaff
+      tags: [staff]
+      summary: Delete staff routing rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/aging:
+    get:
+      operationId: getAgingReport
+      tags: [dashboard]
+      summary: Get aged invoice report data
+      responses:
+        "200":
+          description: Aging report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgingEntry"
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent invoice activity
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEntry"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +550,811 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    LoginBody:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        displayName:
+          type: string
+        role:
+          type: string
+      required: [id, username, displayName, role]
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        invoiceNumber:
+          type: string
+        invoiceStatus:
+          type: string
+        invoiceAmount:
+          type: number
+        invoiceDate:
+          type: string
+          nullable: true
+        invoiceType:
+          type: string
+          nullable: true
+        fiscalYear:
+          type: string
+          nullable: true
+        vendorID:
+          type: string
+          nullable: true
+        vendorName:
+          type: string
+          nullable: true
+        contractPONumber:
+          type: string
+          nullable: true
+        fiscalPONumber:
+          type: string
+          nullable: true
+        voucherID:
+          type: string
+          nullable: true
+        warrantNumber:
+          type: string
+          nullable: true
+        warrantDate:
+          type: string
+          nullable: true
+        approvalDate:
+          type: string
+          nullable: true
+        staffName:
+          type: string
+          nullable: true
+        supervisor:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        group:
+          type: string
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        branch:
+          type: string
+          nullable: true
+        divisionCenter:
+          type: string
+          nullable: true
+        reportingStructure:
+          type: string
+          nullable: true
+        statusNotes:
+          type: string
+          nullable: true
+        submissionNotes:
+          type: string
+          nullable: true
+        programReceivedDate:
+          type: string
+          nullable: true
+        accountingReceivedDate:
+          type: string
+          nullable: true
+        invoiceReturnDate:
+          type: string
+          nullable: true
+        claimSchedule:
+          type: string
+          nullable: true
+        processingType:
+          type: string
+          nullable: true
+        expedite:
+          type: boolean
+        cashHold:
+          type: boolean
+        localHealth:
+          type: boolean
+        specialHandling:
+          type: boolean
+        dvbeSbCmia:
+          type: boolean
+        revolvingFund:
+          type: boolean
+        snapNurse:
+          type: boolean
+        calVaxGrant:
+          type: boolean
+        schoolsGrant:
+          type: boolean
+        airQualityCmp:
+          type: boolean
+        advancePayment:
+          type: boolean
+        drill2:
+          type: boolean
+        covid19Related:
+          type: string
+          nullable: true
+        submitterName:
+          type: string
+          nullable: true
+        submitterEmail:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - invoiceNumber
+        - invoiceStatus
+        - invoiceAmount
+        - expedite
+        - cashHold
+        - localHealth
+        - specialHandling
+        - dvbeSbCmia
+        - revolvingFund
+        - snapNurse
+        - calVaxGrant
+        - schoolsGrant
+        - airQualityCmp
+        - advancePayment
+        - drill2
+        - createdAt
+        - updatedAt
+
+    InvoiceListResponse:
+      type: object
+      properties:
+        invoices:
+          type: array
+          items:
+            $ref: "#/components/schemas/Invoice"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required: [invoices, total, page, limit, totalPages]
+
+    CreateInvoiceBody:
+      type: object
+      properties:
+        invoiceNumber:
+          type: string
+        invoiceAmount:
+          type: number
+        invoiceDate:
+          type: string
+          nullable: true
+        invoiceType:
+          type: string
+          nullable: true
+        fiscalYear:
+          type: string
+          nullable: true
+        vendorID:
+          type: string
+          nullable: true
+        vendorName:
+          type: string
+          nullable: true
+        contractPONumber:
+          type: string
+          nullable: true
+        fiscalPONumber:
+          type: string
+          nullable: true
+        reportingStructure:
+          type: string
+          nullable: true
+        submissionNotes:
+          type: string
+          nullable: true
+        programReceivedDate:
+          type: string
+          nullable: true
+        accountingReceivedDate:
+          type: string
+          nullable: true
+        processingType:
+          type: string
+          nullable: true
+        expedite:
+          type: boolean
+        cashHold:
+          type: boolean
+        localHealth:
+          type: boolean
+        specialHandling:
+          type: boolean
+        dvbeSbCmia:
+          type: boolean
+        revolvingFund:
+          type: boolean
+        snapNurse:
+          type: boolean
+        calVaxGrant:
+          type: boolean
+        schoolsGrant:
+          type: boolean
+        airQualityCmp:
+          type: boolean
+        advancePayment:
+          type: boolean
+        drill2:
+          type: boolean
+        covid19Related:
+          type: string
+          nullable: true
+        submitterName:
+          type: string
+          nullable: true
+        submitterEmail:
+          type: string
+          nullable: true
+      required: [invoiceNumber, invoiceAmount]
+
+    UpdateInvoiceBody:
+      type: object
+      properties:
+        invoiceStatus:
+          type: string
+          nullable: true
+        invoiceAmount:
+          type: number
+          nullable: true
+        invoiceDate:
+          type: string
+          nullable: true
+        invoiceType:
+          type: string
+          nullable: true
+        fiscalYear:
+          type: string
+          nullable: true
+        vendorID:
+          type: string
+          nullable: true
+        vendorName:
+          type: string
+          nullable: true
+        contractPONumber:
+          type: string
+          nullable: true
+        fiscalPONumber:
+          type: string
+          nullable: true
+        voucherID:
+          type: string
+          nullable: true
+        warrantNumber:
+          type: string
+          nullable: true
+        warrantDate:
+          type: string
+          nullable: true
+        approvalDate:
+          type: string
+          nullable: true
+        staffName:
+          type: string
+          nullable: true
+        supervisor:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        group:
+          type: string
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        branch:
+          type: string
+          nullable: true
+        divisionCenter:
+          type: string
+          nullable: true
+        reportingStructure:
+          type: string
+          nullable: true
+        statusNotes:
+          type: string
+          nullable: true
+        submissionNotes:
+          type: string
+          nullable: true
+        programReceivedDate:
+          type: string
+          nullable: true
+        accountingReceivedDate:
+          type: string
+          nullable: true
+        claimSchedule:
+          type: string
+          nullable: true
+        processingType:
+          type: string
+          nullable: true
+        expedite:
+          type: boolean
+          nullable: true
+        cashHold:
+          type: boolean
+          nullable: true
+        localHealth:
+          type: boolean
+          nullable: true
+        specialHandling:
+          type: boolean
+          nullable: true
+        dvbeSbCmia:
+          type: boolean
+          nullable: true
+        revolvingFund:
+          type: boolean
+          nullable: true
+        snapNurse:
+          type: boolean
+          nullable: true
+        calVaxGrant:
+          type: boolean
+          nullable: true
+        schoolsGrant:
+          type: boolean
+          nullable: true
+        airQualityCmp:
+          type: boolean
+          nullable: true
+        advancePayment:
+          type: boolean
+          nullable: true
+        drill2:
+          type: boolean
+          nullable: true
+        covid19Related:
+          type: string
+          nullable: true
+
+    DuplicateCheckBody:
+      type: object
+      properties:
+        invoiceNumber:
+          type: string
+        invoiceAmount:
+          type: number
+        fiscalYear:
+          type: string
+        vendorID:
+          type: string
+        excludeId:
+          type: integer
+          nullable: true
+      required: [invoiceNumber, invoiceAmount, fiscalYear, vendorID]
+
+    DuplicateCheckResult:
+      type: object
+      properties:
+        isDuplicate:
+          type: boolean
+        existingId:
+          type: integer
+          nullable: true
+        existingInvoiceNumber:
+          type: string
+          nullable: true
+      required: [isDuplicate]
+
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: integer
+        supplierID:
+          type: string
+        supplierName:
+          type: string
+        fiCalID:
+          type: string
+          nullable: true
+        sb:
+          type: boolean
+        mb:
+          type: boolean
+        dvbe:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, supplierID, supplierName, sb, mb, dvbe, createdAt]
+
+    CreateSupplierBody:
+      type: object
+      properties:
+        supplierID:
+          type: string
+        supplierName:
+          type: string
+        fiCalID:
+          type: string
+          nullable: true
+        sb:
+          type: boolean
+        mb:
+          type: boolean
+        dvbe:
+          type: boolean
+      required: [supplierID, supplierName]
+
+    UpdateSupplierBody:
+      type: object
+      properties:
+        supplierName:
+          type: string
+          nullable: true
+        fiCalID:
+          type: string
+          nullable: true
+        sb:
+          type: boolean
+          nullable: true
+        mb:
+          type: boolean
+          nullable: true
+        dvbe:
+          type: boolean
+          nullable: true
+
+    PurchaseOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        poNumber:
+          type: string
+        poDate:
+          type: string
+          nullable: true
+        poStatus:
+          type: string
+          nullable: true
+        supplierID:
+          type: string
+          nullable: true
+        supplierName:
+          type: string
+          nullable: true
+        lineItemDescription:
+          type: string
+          nullable: true
+        fund:
+          type: string
+          nullable: true
+        program:
+          type: string
+          nullable: true
+        project:
+          type: string
+          nullable: true
+        encumberedAmount:
+          type: number
+          nullable: true
+        expensedAmount:
+          type: number
+          nullable: true
+        remainingEncumbrance:
+          type: number
+          nullable: true
+        budgetStatus:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, poNumber, createdAt]
+
+    Speedchart:
+      type: object
+      properties:
+        id:
+          type: integer
+        speedchart:
+          type: string
+        description:
+          type: string
+          nullable: true
+        sequence:
+          type: string
+          nullable: true
+        appropRef:
+          type: string
+          nullable: true
+        fund:
+          type: string
+          nullable: true
+        eny:
+          type: string
+          nullable: true
+        program:
+          type: string
+          nullable: true
+        projectID:
+          type: string
+          nullable: true
+        activityID:
+          type: string
+          nullable: true
+        svcLoc:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, speedchart, createdAt]
+
+    StaffRoute:
+      type: object
+      properties:
+        id:
+          type: integer
+        reportingStructure:
+          type: string
+        invoiceType:
+          type: string
+          nullable: true
+        accountant:
+          type: string
+        supervisor:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        branch:
+          type: string
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        group:
+          type: string
+          nullable: true
+        divisionCenter:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, reportingStructure, accountant, createdAt]
+
+    CreateStaffBody:
+      type: object
+      properties:
+        reportingStructure:
+          type: string
+        invoiceType:
+          type: string
+          nullable: true
+        accountant:
+          type: string
+        supervisor:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        branch:
+          type: string
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        group:
+          type: string
+          nullable: true
+        divisionCenter:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+      required: [reportingStructure, accountant]
+
+    UpdateStaffBody:
+      type: object
+      properties:
+        reportingStructure:
+          type: string
+          nullable: true
+        invoiceType:
+          type: string
+          nullable: true
+        accountant:
+          type: string
+          nullable: true
+        supervisor:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        branch:
+          type: string
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        group:
+          type: string
+          nullable: true
+        divisionCenter:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    DashboardStats:
+      type: object
+      properties:
+        totalInvoices:
+          type: integer
+        byStatus:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              count:
+                type: integer
+            required: [status, count]
+        totalAmount:
+          type: number
+        avgProcessingDays:
+          type: number
+          nullable: true
+        expediteCount:
+          type: integer
+        cashHoldCount:
+          type: integer
+        returnedCount:
+          type: integer
+        duplicateCount:
+          type: integer
+        byUnit:
+          type: array
+          items:
+            type: object
+            properties:
+              unit:
+                type: string
+              count:
+                type: integer
+            required: [unit, count]
+        byFiscalYear:
+          type: array
+          items:
+            type: object
+            properties:
+              fiscalYear:
+                type: string
+              count:
+                type: integer
+              totalAmount:
+                type: number
+            required: [fiscalYear, count, totalAmount]
+      required:
+        - totalInvoices
+        - byStatus
+        - totalAmount
+        - expediteCount
+        - cashHoldCount
+        - returnedCount
+        - duplicateCount
+        - byUnit
+        - byFiscalYear
+
+    AgingEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        invoiceNumber:
+          type: string
+        invoiceStatus:
+          type: string
+        invoiceAmount:
+          type: number
+        vendorName:
+          type: string
+          nullable: true
+        staffName:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        supervisor:
+          type: string
+          nullable: true
+        programReceivedDate:
+          type: string
+          nullable: true
+        accountingReceivedDate:
+          type: string
+          nullable: true
+        daysSinceModified:
+          type: integer
+        daysSinceCdoReceived:
+          type: integer
+          nullable: true
+        daysSinceAccountingReceived:
+          type: integer
+          nullable: true
+        expedite:
+          type: boolean
+      required: [id, invoiceNumber, invoiceStatus, invoiceAmount, daysSinceModified, expedite]
+
+    ActivityEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        invoiceId:
+          type: integer
+        invoiceNumber:
+          type: string
+        action:
+          type: string
+        statusFrom:
+          type: string
+          nullable: true
+        statusTo:
+          type: string
+          nullable: true
+        changedBy:
+          type: string
+          nullable: true
+        changedAt:
+          type: string
+        notes:
+          type: string
+          nullable: true
+      required: [id, invoiceId, invoiceNumber, action, changedAt]

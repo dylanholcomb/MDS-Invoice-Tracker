@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "TRKR - Invoice Tracking"
+version = "1.0.0"
+id = "artifacts/trkr"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19354
+
+[services.development]
+run = "pnpm --filter @workspace/trkr run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/trkr", "run", "build" ]
+publicDir = "artifacts/trkr/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19354"
+BASE_PATH = "/"
