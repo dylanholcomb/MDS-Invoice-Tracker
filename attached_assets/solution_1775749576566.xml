@@ -1,0 +1,118 @@
+<ImportExportXml version="9.2.26013.158" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26013.158" OrganizationSchemaType="Full" CRMServerServiceabilityVersion="9.2.26013.00158">
+  <SolutionManifest>
+    <UniqueName>InvoiceTracking</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Invoice Tracking" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>1.2.5</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>InvoiceTracking</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="InvoiceTracking" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>invoicet</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>52455</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="29" id="{257d3be3-451f-ed11-b83c-001dd8069146}" behavior="0" />
+      <RootComponent type="29" id="{2814d7c6-caa8-ed11-aad1-001dd804f253}" behavior="0" />
+      <RootComponent type="29" id="{2a135476-fcdc-ef11-8eea-001dd830706f}" behavior="0" />
+      <RootComponent type="29" id="{3df83edf-6ec0-ee11-9078-001dd806c33f}" behavior="0" />
+      <RootComponent type="29" id="{70469328-421f-ed11-b83c-001dd8069146}" behavior="0" />
+      <RootComponent type="29" id="{71469328-421f-ed11-b83c-001dd8069146}" behavior="0" />
+      <RootComponent type="29" id="{82963160-f1ef-f011-8406-001dd811e1b4}" behavior="0" />
+      <RootComponent type="29" id="{8f5e1b0e-e1b0-ef11-b8e9-001dd830706f}" behavior="0" />
+      <RootComponent type="29" id="{93624c9e-92ff-ef11-9340-001dd804afed}" behavior="0" />
+      <RootComponent type="29" id="{a63630a3-5ba0-ee11-be36-001dd80942c8}" behavior="0" />
+      <RootComponent type="29" id="{c592572b-421f-ed11-b83c-001dd80693c3}" behavior="0" />
+      <RootComponent type="29" id="{c892572b-421f-ed11-b83c-001dd80693c3}" behavior="0" />
+      <RootComponent type="29" id="{d692572b-421f-ed11-b83c-001dd80693c3}" behavior="0" />
+      <RootComponent type="29" id="{da92572b-421f-ed11-b83c-001dd80693c3}" behavior="0" />
+      <RootComponent type="29" id="{de46a7fa-35a0-ee11-be36-001dd809470c}" behavior="0" />
+      <RootComponent type="29" id="{e98eb185-12a5-ee11-be36-001dd8094e28}" behavior="0" />
+      <RootComponent type="29" id="{eb7cc931-421f-ed11-b83c-001dd80693c3}" behavior="0" />
+      <RootComponent type="29" id="{f0a1c368-6238-ee11-bdf4-001dd8301d06}" behavior="0" />
+      <RootComponent type="29" id="{f77cc931-421f-ed11-b83c-001dd80693c3}" behavior="0" />
+      <RootComponent type="29" id="{fa760f3c-421f-ed11-b83c-001dd8069146}" behavior="0" />
+      <RootComponent type="62" schemaName="invoicet_InvoiceManagement" behavior="0" />
+      <RootComponent type="300" schemaName="invoicet_invoicetracking" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required type="1" schemaName="environmentvariabledefinition" displayName="Environment Variable Definition" solution="EnvironmentVariables (1.0.2406.4)">
+          <package appName="EnvironmentVariables" version="1.0.2406.4">EnvironmentVariablesSolutionAnchor (1.0.2406.4)</package>
+        </Required>
+        <Dependent type="300" schemaName="invoicet_invoicetracking" displayName="Invoice Submission Portal - Dev" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="environmentvariablevalue" displayName="Environment Variable Value" solution="EnvironmentVariables (1.0.2406.4)">
+          <package appName="EnvironmentVariables" version="1.0.2406.4">EnvironmentVariablesSolutionAnchor (1.0.2406.4)</package>
+        </Required>
+        <Dependent type="300" schemaName="invoicet_invoicetracking" displayName="Invoice Submission Portal - Dev" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>

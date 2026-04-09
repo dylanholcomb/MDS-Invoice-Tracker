@@ -1,0 +1,644 @@
+<ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26013.158" OrganizationSchemaType="Full" CRMServerServiceabilityVersion="9.2.26013.00158">
+  <Entities></Entities>
+  <Roles></Roles>
+  <Workflows>
+    <Workflow WorkflowId="{93624c9e-92ff-ef11-9340-001dd804afed}" Name="Copy of - Assign Drill 2">
+      <JsonFileName>/Workflows/Copyof-AssignDrill2-93624C9E-92FF-EF11-9340-001DD804AFED.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.1</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Copy of - Assign Drill 2" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{2814d7c6-caa8-ed11-aad1-001dd804f253}" Name="Update Speedcharts">
+      <JsonFileName>/Workflows/UpdateSpeedcharts-2814D7C6-CAA8-ED11-AAD1-001DD804F253.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.20221005</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Update Speedcharts" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{70469328-421f-ed11-b83c-001dd8069146}" Name="Staff Assignment">
+      <JsonFileName>/Workflows/StaffAssignment-70469328-421F-ED11-B83C-001DD8069146.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Staff Assignment" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{71469328-421f-ed11-b83c-001dd8069146}" Name="Send Returned email">
+      <JsonFileName>/Workflows/SendReturnedemail-71469328-421F-ED11-B83C-001DD8069146.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>1</StateCode>
+      <StatusCode>2</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Send Returned email" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{fa760f3c-421f-ed11-b83c-001dd8069146}" Name="Update Warrants">
+      <JsonFileName>/Workflows/UpdateWarrants-FA760F3C-421F-ED11-B83C-001DD8069146.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Update Warrants" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{257d3be3-451f-ed11-b83c-001dd8069146}" Name="Air Quality CMP Folder">
+      <JsonFileName>/Workflows/AirQualityCMPFolder-257D3BE3-451F-ED11-B83C-001DD8069146.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Air Quality CMP Folder" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{c592572b-421f-ed11-b83c-001dd80693c3}" Name="Assign COVID">
+      <JsonFileName>/Workflows/AssignCOVID-C592572B-421F-ED11-B83C-001DD80693C3.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Assign COVID" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{c892572b-421f-ed11-b83c-001dd80693c3}" Name="CashHold">
+      <JsonFileName>/Workflows/CashHold-C892572B-421F-ED11-B83C-001DD80693C3.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>1</StateCode>
+      <StatusCode>2</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="CashHold" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{d692572b-421f-ed11-b83c-001dd80693c3}" Name="Supplier Updates - Daily">
+      <JsonFileName>/Workflows/SupplierUpdates-Daily-D692572B-421F-ED11-B83C-001DD80693C3.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>1</StateCode>
+      <StatusCode>2</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Supplier Updates - Daily" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{da92572b-421f-ed11-b83c-001dd80693c3}" Name="DuplicateMatching">
+      <JsonFileName>/Workflows/DuplicateMatching-DA92572B-421F-ED11-B83C-001DD80693C3.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="DuplicateMatching" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{eb7cc931-421f-ed11-b83c-001dd80693c3}" Name="StatusUpdate">
+      <JsonFileName>/Workflows/StatusUpdate-EB7CC931-421F-ED11-B83C-001DD80693C3.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="StatusUpdate" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{f77cc931-421f-ed11-b83c-001dd80693c3}" Name="Update POs">
+      <JsonFileName>/Workflows/UpdatePOs-F77CC931-421F-ED11-B83C-001DD80693C3.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Update POs" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{3df83edf-6ec0-ee11-9078-001dd806c33f}" Name="Return Invoice Reminder">
+      <JsonFileName>/Workflows/ReturnInvoiceReminder-3DF83EDF-6EC0-EE11-9078-001DD806C33F.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.1.20221038</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Return Invoice Reminder" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{a63630a3-5ba0-ee11-be36-001dd80942c8}" Name="Stale Invoice Check">
+      <JsonFileName>/Workflows/StaleInvoiceCheck-A63630A3-5BA0-EE11-BE36-001DD80942C8.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.1.20221030</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Stale Invoice Check" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{de46a7fa-35a0-ee11-be36-001dd809470c}" Name="CheckDupInterface">
+      <JsonFileName>/Workflows/CheckDupInterface-DE46A7FA-35A0-EE11-BE36-001DD809470C.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>1</StateCode>
+      <StatusCode>2</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.1.20221030</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="CheckDupInterface" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{e98eb185-12a5-ee11-be36-001dd8094e28}" Name="AgingReport">
+      <JsonFileName>/Workflows/AgingReport-E98EB185-12A5-EE11-BE36-001DD8094E28.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.1.20221030</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="AgingReport" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{82963160-f1ef-f011-8406-001dd811e1b4}" Name="Assign AdvancePayment">
+      <JsonFileName>/Workflows/AssignAdvancePayment-82963160-F1EF-F011-8406-001DD811E1B4.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>1</StateCode>
+      <StatusCode>2</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.2.1</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <ModernFlowType>0</ModernFlowType>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Assign AdvancePayment" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{f0a1c368-6238-ee11-bdf4-001dd8301d06}" Name="CreateCoversheet">
+      <JsonFileName>/Workflows/CreateCoversheet-F0A1C368-6238-EE11-BDF4-001DD8301D06.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>0</StateCode>
+      <StatusCode>1</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.1.20221020</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="CreateCoversheet" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{2a135476-fcdc-ef11-8eea-001dd830706f}" Name="Assign Drill 2">
+      <JsonFileName>/Workflows/AssignDrill2-2A135476-FCDC-EF11-8EEA-001DD830706F.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>1</StateCode>
+      <StatusCode>2</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.1.20221072</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="Assign Drill 2" />
+      </LocalizedNames>
+    </Workflow>
+    <Workflow WorkflowId="{8f5e1b0e-e1b0-ef11-b8e9-001dd830706f}" Name="ClaimSchedule update">
+      <JsonFileName>/Workflows/ClaimScheduleupdate-8F5E1B0E-E1B0-EF11-B8E9-001DD830706F.json</JsonFileName>
+      <Type>1</Type>
+      <Subprocess>0</Subprocess>
+      <Category>5</Category>
+      <Mode>0</Mode>
+      <Scope>4</Scope>
+      <OnDemand>0</OnDemand>
+      <TriggerOnCreate>0</TriggerOnCreate>
+      <TriggerOnDelete>0</TriggerOnDelete>
+      <AsyncAutodelete>0</AsyncAutodelete>
+      <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+      <StateCode>1</StateCode>
+      <StatusCode>2</StatusCode>
+      <RunAs>1</RunAs>
+      <IsTransacted>1</IsTransacted>
+      <IntroducedVersion>1.0.1.20221070</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <BusinessProcessType>0</BusinessProcessType>
+      <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+      <PrimaryEntity>none</PrimaryEntity>
+      <LocalizedNames>
+        <LocalizedName languagecode="1033" description="ClaimSchedule update" />
+      </LocalizedNames>
+    </Workflow>
+  </Workflows>
+  <FieldSecurityProfiles></FieldSecurityProfiles>
+  <Templates />
+  <EntityMaps />
+  <EntityRelationships />
+  <OrganizationSettings />
+  <optionsets />
+  <CustomControls />
+  <AppModuleSiteMaps>
+    <AppModuleSiteMap>
+      <SiteMapUniqueName>invoicet_InvoiceManagement</SiteMapUniqueName>
+      <EnableCollapsibleGroups>False</EnableCollapsibleGroups>
+      <ShowHome>True</ShowHome>
+      <ShowPinned>True</ShowPinned>
+      <ShowRecents>True</ShowRecents>
+      <SiteMap IntroducedVersion="7.0.0.0">
+        <Area Id="area_1ca2d959" ResourceId="SitemapDesigner.NewTitle" DescriptionResourceId="SitemapDesigner.NewTitle" ShowGroups="true" IntroducedVersion="7.0.0.0">
+          <Titles>
+            <Title LCID="1033" Title="Area1" />
+          </Titles>
+          <Group Id="group_54d224ee" ResourceId="SitemapDesigner.NewGroup" DescriptionResourceId="SitemapDesigner.NewGroup" IntroducedVersion="7.0.0.0" IsProfile="false" ToolTipResourseId="SitemapDesigner.Unknown">
+            <Titles>
+              <Title LCID="1033" Title="Group1" />
+            </Titles>
+            <SubArea Id="subarea_ec2fdc2a" ResourceId="SitemapDesigner.NewSubArea" Icon="/_imgs/imagestrips/transparent_spacer.gif" Client="All,Outlook,OutlookLaptopClient,OutlookWorkstationClient,Web" AvailableOffline="true" PassParams="false" Sku="All,OnPremise,Live,SPLA">
+              <Titles>
+                <Title LCID="1033" Title="Subarea1" />
+              </Titles>
+            </SubArea>
+          </Group>
+        </Area>
+      </SiteMap>
+      <LocalizedNames>
+        <LocalizedName description="InvoiceManagement" languagecode="1033" />
+      </LocalizedNames>
+    </AppModuleSiteMap>
+  </AppModuleSiteMaps>
+  <EntityDataProviders />
+  <CanvasApps>
+    <CanvasApp>
+      <Name>invoicet_invoicetracking</Name>
+      <AppVersion>2026-01-12T20:19:43Z</AppVersion>
+      <Status>Ready</Status>
+      <CreatedByClientVersion>3.25123.14.0</CreatedByClientVersion>
+      <MinClientVersion>3.25123.14.0</MinClientVersion>
+      <Tags>{"primaryDeviceWidth":"1366","primaryDeviceHeight":"768","sienaVersion":"20260107T235459Z-3.25122.8.0","deviceCapabilities":"","supportsPortrait":"false","supportsLandscape":"true","primaryFormFactor":"Tablet","publisherVersion":"3.25123.14","minimumRequiredApiVersion":"2.2.0","hasComponent":"false","hasUnlockedComponent":"false","isUnifiedRootApp":"false","showStatusBar":"false","offlineLargeFilesSupport":"false"}</Tags>
+      <IsCdsUpgraded>0</IsCdsUpgraded>
+      <GalleryItemId xsi:nil="true"></GalleryItemId>
+      <BackgroundColor>rgba(105, 180, 69, 1)</BackgroundColor>
+      <DisplayName>Invoice Submission Portal - Dev</DisplayName>
+      <Description xsi:nil="true"></Description>
+      <CommitMessage xsi:nil="true"></CommitMessage>
+      <Publisher xsi:nil="true"></Publisher>
+      <AuthorizationReferences>[]</AuthorizationReferences>
+      <ConnectionReferences>{"753f3a45-1014-4888-a9b6-aa092192a485":{"id":"/providers/microsoft.powerapps/apis/shared_logicflows","displayName":"Logic flows","iconUri":"https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/v1.0.1774/1.0.1774.4397/logicflows/icon.png","dataSources":["CheckDupInterface"],"dependencies":["6f431f9a-c6fd-4f30-8c3a-fae632445bfe"],"dependents":[],"parameterHints":{"workflowName":{"value":"810f19ca-32cb-46c2-9bd0-bb642d91905b"},"workflowEntityId":{"value":"de46a7fa-35a0-ee11-be36-001dd809470c"},"workflowDisplayName":{"value":"CheckDupInterface"},"6f3fe9af-10bc-4000-aa45-5301b171a913":{"value":"shared_sharepointonline_1"},"6f431f9a-c6fd-4f30-8c3a-fae632445bfe":{"value":"shared_sharepointonline_1"}},"parameterHintsV2":{"workflowName":{"value":"810f19ca-32cb-46c2-9bd0-bb642d91905b"},"workflowEntityId":{"value":"de46a7fa-35a0-ee11-be36-001dd809470c"},"workflowDisplayName":{"value":"CheckDupInterface"},"shared_sharepointonline_1":{"value":"6f431f9a-c6fd-4f30-8c3a-fae632445bfe"}},"isOnPremiseConnection":false,"bypassConsent":false,"dataSets":{},"apiTier":"Standard","actions":["Run"]},"6f431f9a-c6fd-4f30-8c3a-fae632445bfe":{"id":"/providers/microsoft.powerapps/apis/shared_sharepointonline","displayName":"SharePoint","iconUri":"https://conn-afd-prod-endpoint-bmc9bqahasf3grgk.b01.azurefd.net/releases/v1.0.1732/1.0.1732.4070/sharepointonline/icon.png","dataSources":["InvoiceTrackingSpeedcharts","InvoiceTrackingQLs","InvoiceTrackingSupplier","InvoiceTrackingPOs","InvoiceTrackingInvoices","Notice"],"dependencies":[],"dependents":["753f3a45-1014-4888-a9b6-aa092192a485"],"parameterHints":{},"parameterHintsV2":{},"isOnPremiseConnection":false,"bypassConsent":false,"dataSets":{"https://cdph.sharepoint.com/sites/InvoiceTrackingDev_invoicet_InvoiceTrackingSite":{"datasetOverride":{"name":"https://cdph.sharepoint.com/sites/InvoiceTrackingDev","environmentVariableName":"invoicet_InvoiceTrackingSite"},"dataSources":{"InvoiceTrackingSpeedcharts":{"tableName":"70c8e713-020e-4227-b778-b56913d3f763","tableNameOverride":{"name":"70c8e713-020e-4227-b778-b56913d3f763","environmentVariableName":"invoicet_InvoiceTrackingSpeedcharts"}},"InvoiceTrackingQLs":{"tableName":"b6c2311d-7256-4fb1-9087-17a136424469","tableNameOverride":{"name":"b6c2311d-7256-4fb1-9087-17a136424469","environmentVariableName":"invoicet_InvoiceTrackingQLs"}},"InvoiceTrackingSupplier":{"tableName":"7267cba0-f459-471f-b91d-a77178a5fbad","tableNameOverride":{"name":"7267cba0-f459-471f-b91d-a77178a5fbad","environmentVariableName":"invoicet_InvoiceTrackingSupplier"}},"InvoiceTrackingPOs":{"tableName":"3493f7b9-ade5-4b2d-b491-8f99fef905b7","tableNameOverride":{"name":"3493f7b9-ade5-4b2d-b491-8f99fef905b7","environmentVariableName":"invoicet_InvoiceTrackingPOs"}},"InvoiceTrackingInvoices":{"tableName":"Invoice Tracking","tableNameOverride":{"name":"Invoice Tracking","environmentVariableName":"invoicet_InvoiceTrackingInvoices"}}}},"https://cdph.sharepoint.com/sites/InvoiceTrackingDev":{"dataSources":{"Notice":{"tableName":"ff0ee8ea-a528-402a-a1c4-d116d47e9a0e"}}}},"apiTier":"Standard","actions":["providers/PowerPlatform.Governance/Operations/Read","providers/PowerPlatform.Governance/Operations/Write"]},"bfa854c2-cce8-4eda-ac58-a32fa100a829":{"id":"/providers/microsoft.powerapps/apis/shared_office365","displayName":"Office 365 Outlook","iconUri":"https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/v1.0.1763/1.0.1763.4311/office365/icon.png","dataSources":["Office365Outlook"],"dependencies":[],"dependents":[],"parameterHints":{},"parameterHintsV2":{},"isOnPremiseConnection":false,"bypassConsent":false,"dataSets":{},"apiTier":"Standard","actions":["SendEmailV2","SendEmail"]},"4af6cb9d-b9fc-42da-94f6-e16f9754a1d4":{"id":"/providers/microsoft.powerapps/apis/shared_office365groups","displayName":"Office 365 Groups","iconUri":"https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/1759/1.0.1759.4274/office365groups/icon.png","dataSources":["Office365Groups"],"dependencies":[],"dependents":[],"parameterHints":{},"parameterHintsV2":{},"isOnPremiseConnection":false,"bypassConsent":false,"dataSets":{},"apiTier":"Standard"},"2d45d472-9177-4908-ad0c-c67d39dbe540":{"id":"/providers/microsoft.powerapps/apis/shared_azuread","displayName":"Microsoft Entra ID","iconUri":"https://connectorsiconsfairfax.z5.web.core.usgovcloudapi.net/releases/v1.0.1778/1.0.1778.4420/azuread/icon.png","dataSources":["MicrosoftEntraID"],"dependencies":[],"dependents":[],"parameterHints":{},"parameterHintsV2":{},"isOnPremiseConnection":false,"bypassConsent":false,"dataSets":{},"apiTier":"Standard","actions":["CheckMemberGroupsV2"]}}</ConnectionReferences>
+      <DatabaseReferences>{"default.cds":{"databaseDetails":{"referenceType":"Environmental","environmentName":"default.cds","overrideValues":{"status":"NotSpecified","environmentVariableName":""}},"dataSources":{"Environment Variable Values":{"entitySetName":"environmentvariablevalues","logicalName":"environmentvariablevalue"},"Environment Variable Definitions":{"entitySetName":"environmentvariabledefinitions","logicalName":"environmentvariabledefinition"}}}}</DatabaseReferences>
+      <AppComponents>[]</AppComponents>
+      <AppComponentDependencies>[]</AppComponentDependencies>
+      <CanConsumeAppPass>1</CanConsumeAppPass>
+      <CanvasAppType>0</CanvasAppType>
+      <BypassConsent>0</BypassConsent>
+      <AdminControlBypassConsent>0</AdminControlBypassConsent>
+      <EmbeddedApp xsi:nil="true"></EmbeddedApp>
+      <IntroducedVersion>1.0</IntroducedVersion>
+      <CdsDependencies>{"cdsdependencies":[{"dependencyid":"de46a7fa-35a0-ee11-be36-001dd809470c","componenttype":29,"componenttypeplatformname":"Workflow"},{"logicalname":"environmentvariablevalue","componenttype":1},{"logicalname":"environmentvariabledefinition","componenttype":1},{"logicalname":"invoicet_InvoiceTrackingSite","componenttype":380,"componenttypeplatformname":"EnvironmentVariableDefinition"},{"logicalname":"invoicet_InvoiceTrackingSpeedcharts","componenttype":380,"componenttypeplatformname":"EnvironmentVariableDefinition"},{"logicalname":"invoicet_InvoiceTrackingQLs","componenttype":380,"componenttypeplatformname":"EnvironmentVariableDefinition"},{"logicalname":"invoicet_InvoiceTrackingSupplier","componenttype":380,"componenttypeplatformname":"EnvironmentVariableDefinition"},{"logicalname":"invoicet_InvoiceTrackingPOs","componenttype":380,"componenttypeplatformname":"EnvironmentVariableDefinition"},{"logicalname":"invoicet_InvoiceTrackingInvoices","componenttype":380,"componenttypeplatformname":"EnvironmentVariableDefinition"}]}</CdsDependencies>
+      <IsCustomizable>1</IsCustomizable>
+      <BackgroundImageUri>/CanvasApps/invoicet_invoicetracking_BackgroundImageUri</BackgroundImageUri>
+      <DocumentUri>/CanvasApps/invoicet_invoicetracking_DocumentUri.msapp</DocumentUri>
+      <AdditionalUris>
+        <AdditionalUri>/CanvasApps/invoicet_invoicetracking_AdditionalUris0_identity.json</AdditionalUri>
+      </AdditionalUris>
+    </CanvasApp>
+  </CanvasApps>
+  <connectionreferences>
+    <connectionreference connectionreferencelogicalname="invoicet_ConnectionRefOffice365Outlook">
+      <connectionreferencedisplayname>ConnectionRefOffice365Outlook</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_office365</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="invoicet_ConnectionRefSharePoint">
+      <connectionreferencedisplayname>ConnectionRefSharePoint</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_sharepointonline</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="invoicet_Excel">
+      <connectionreferencedisplayname>Excel</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="invoicet_sharedconversionservice_6cf3a">
+      <connectionreferencedisplayname>Content Conversion InvoiceTracking</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_conversionservice</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="invoicet_sharedonedriveforbusiness_9e913">
+      <connectionreferencedisplayname>OneDrive InvoiceTracking</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="invoicet_sharedwordonlinebusiness_c1d41">
+      <connectionreferencedisplayname>Word Online InvoiceTracking</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_wordonlinebusiness</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="invoicet_SharePoint">
+      <connectionreferencedisplayname>SharePoint</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_sharepointonline</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="new_sharedoffice365_bb77f">
+      <connectionreferencedisplayname>Office 365 Outlook</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_office365</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="new_sharedsharepointonline_6ce6e">
+      <connectionreferencedisplayname>SharePoint</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_sharepointonline</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+    <connectionreference connectionreferencelogicalname="new_sharedsharepointonline_d4df0">
+      <connectionreferencedisplayname>SharePoint</connectionreferencedisplayname>
+      <connectorid>/providers/Microsoft.PowerApps/apis/shared_sharepointonline</connectorid>
+      <iscustomizable>1</iscustomizable>
+      <statecode>0</statecode>
+      <statuscode>1</statuscode>
+    </connectionreference>
+  </connectionreferences>
+  <Languages>
+    <Language>1033</Language>
+  </Languages>
+</ImportExportXml>
