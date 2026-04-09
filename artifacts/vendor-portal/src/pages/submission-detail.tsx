@@ -5,7 +5,12 @@ import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, Paperclip, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, ChevronLeft, Paperclip, ExternalLink, Pencil, Lock, X, Check } from "lucide-react";
+
+const EDITABLE_STATUS = "Awaiting Processing";
 
 function statusBadgeVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
   switch (status) {
@@ -30,6 +35,13 @@ function formatDate(s: string) {
   }
 }
 
+function toInputDate(s: string) {
+  if (!s) return "";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  return d.toISOString().slice(0, 10);
+}
+
 function formatCurrency(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 }
@@ -52,10 +64,30 @@ export default function SubmissionDetailPage() {
   const [error, setError] = useState("");
   const [downloadLoading, setDownloadLoading] = useState<number | null>(null);
 
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [form, setForm] = useState({
+    invoiceNumber: "",
+    invoiceDate: "",
+    invoiceAmount: "",
+    contractNumber: "",
+    description: "",
+  });
+
   useEffect(() => {
     if (!id) return;
     api.getSubmission(id)
-      .then(setSubmission)
+      .then((s) => {
+        setSubmission(s);
+        setForm({
+          invoiceNumber: s.invoiceNumber,
+          invoiceDate: toInputDate(s.invoiceDate),
+          invoiceAmount: String(s.invoiceAmount),
+          contractNumber: s.contractNumber ?? "",
+          description: s.description ?? "",
+        });
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
@@ -72,6 +104,42 @@ export default function SubmissionDetailPage() {
       setDownloadLoading(null);
     }
   };
+
+  const handleSave = async () => {
+    if (!submission) return;
+    setSaveError("");
+    setSaving(true);
+    try {
+      const updated = await api.updateSubmission(submission.id, {
+        invoiceNumber: form.invoiceNumber.trim(),
+        invoiceDate: form.invoiceDate,
+        invoiceAmount: parseFloat(form.invoiceAmount),
+        contractNumber: form.contractNumber.trim() || undefined,
+        description: form.description.trim() || undefined,
+      });
+      setSubmission(updated);
+      setEditing(false);
+    } catch (err: any) {
+      setSaveError(err.message ?? "Failed to save changes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (!submission) return;
+    setForm({
+      invoiceNumber: submission.invoiceNumber,
+      invoiceDate: toInputDate(submission.invoiceDate),
+      invoiceAmount: String(submission.invoiceAmount),
+      contractNumber: submission.contractNumber ?? "",
+      description: submission.description ?? "",
+    });
+    setSaveError("");
+    setEditing(false);
+  };
+
+  const canEdit = submission?.status === EDITABLE_STATUS;
 
   return (
     <Layout>
@@ -108,26 +176,138 @@ export default function SubmissionDetailPage() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Invoice Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-                <FieldRow label="Invoice Number" value={submission.invoiceNumber} />
-                <FieldRow label="Invoice Date" value={formatDate(submission.invoiceDate)} />
-                <FieldRow label="Invoice Amount" value={formatCurrency(submission.invoiceAmount)} />
-                <FieldRow label="Status" value={submission.status} />
-                <FieldRow label="Contract Number" value={submission.contractNumber} />
-                <FieldRow label="PO Number" value={submission.poNumber} />
-                <FieldRow label="Submitted On" value={formatDate(submission.createdAt)} />
-                {submission.submissionReference && (
-                  <FieldRow label="Reference Number" value={submission.submissionReference} />
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Invoice Details</CardTitle>
+                {canEdit && !editing && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2.5 text-xs gap-1.5"
+                    onClick={() => setEditing(true)}
+                  >
+                    <Pencil className="h-3 w-3" />
+                    Edit
+                  </Button>
+                )}
+                {!canEdit && (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Lock className="h-3 w-3" />
+                    Locked
+                  </span>
                 )}
               </div>
-              {submission.description && (
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Description</p>
-                  <p className="text-sm">{submission.description}</p>
+            </CardHeader>
+            <CardContent>
+              {editing ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="invoiceNumber" className="text-xs">Invoice Number <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="invoiceNumber"
+                        value={form.invoiceNumber}
+                        onChange={(e) => setForm((f) => ({ ...f, invoiceNumber: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="invoiceDate" className="text-xs">Invoice Date <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="invoiceDate"
+                        type="date"
+                        value={form.invoiceDate}
+                        onChange={(e) => setForm((f) => ({ ...f, invoiceDate: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="invoiceAmount" className="text-xs">Invoice Amount (USD) <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="invoiceAmount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={form.invoiceAmount}
+                        onChange={(e) => setForm((f) => ({ ...f, invoiceAmount: e.target.value }))}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="contractNumber" className="text-xs">Contract Number</Label>
+                      <Input
+                        id="contractNumber"
+                        value={form.contractNumber}
+                        onChange={(e) => setForm((f) => ({ ...f, contractNumber: e.target.value }))}
+                        className="h-8 text-sm"
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="description" className="text-xs">Description / Notes</Label>
+                    <Textarea
+                      id="description"
+                      value={form.description}
+                      onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                      className="text-sm resize-none"
+                      rows={3}
+                      placeholder="Optional"
+                    />
+                  </div>
+                  {saveError && (
+                    <p className="text-xs text-destructive">{saveError}</p>
+                  )}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      className="h-8 px-3 text-xs gap-1.5"
+                      onClick={handleSave}
+                      disabled={saving || !form.invoiceNumber.trim() || !form.invoiceDate || !form.invoiceAmount}
+                    >
+                      {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                      Save Changes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs gap-1.5"
+                      onClick={handleCancelEdit}
+                      disabled={saving}
+                    >
+                      <X className="h-3 w-3" />
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                    <FieldRow label="Invoice Number" value={submission.invoiceNumber} />
+                    <FieldRow label="Invoice Date" value={formatDate(submission.invoiceDate)} />
+                    <FieldRow label="Invoice Amount" value={formatCurrency(submission.invoiceAmount)} />
+                    <FieldRow label="Status" value={submission.status} />
+                    <FieldRow label="Contract Number" value={submission.contractNumber} />
+                    <FieldRow label="PO Number" value={submission.poNumber} />
+                    <FieldRow label="Submitted On" value={formatDate(submission.createdAt)} />
+                    {submission.submissionReference && (
+                      <FieldRow label="Reference Number" value={submission.submissionReference} />
+                    )}
+                  </div>
+                  {submission.description && (
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-1">Description</p>
+                      <p className="text-sm">{submission.description}</p>
+                    </div>
+                  )}
+                  {!canEdit && (
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <p className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        This submission is locked for editing. Your invoice has been received and is being processed.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

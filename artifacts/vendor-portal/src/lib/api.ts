@@ -24,6 +24,8 @@ export const api = {
   listSubmissions: () => request<Submission[]>("GET", "/vendor/submissions"),
   getSubmission: (id: number) => request<Submission>("GET", `/vendor/submissions/${id}`),
   createSubmission: (data: SubmitPayload) => request<Submission>("POST", "/vendor/submissions", data),
+  updateSubmission: (id: number, data: Omit<SubmitPayload, "attachmentPaths">) =>
+    request<Submission>("PUT", `/vendor/submissions/${id}`, data),
 
   getUploadUrl: (filename: string, contentType?: string) =>
     request<{ uploadUrl: string; objectPath: string }>("POST", "/storage/upload-url", { filename, contentType }),

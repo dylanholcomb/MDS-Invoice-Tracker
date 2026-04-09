@@ -60,8 +60,8 @@ async function buildSubmission(invoice: any) {
     invoiceAmount: parseFloat(invoice.invoiceAmount ?? "0"),
     submissionReference: invoice.submissionReference ?? null,
     status: invoice.invoiceStatus,
-    contractNumber: invoice.contractNumber ?? null,
-    poNumber: invoice.poNumber ?? null,
+    contractNumber: invoice.contractPONumber ?? null,
+    poNumber: invoice.fiscalPONumber ?? null,
     description: invoice.description ?? null,
     createdAt: invoice.createdAt?.toISOString() ?? new Date().toISOString(),
     attachments: attachments.map((a) => ({
@@ -150,6 +150,8 @@ router.post("/vendor/submissions", async (req, res) => {
       submitterName: supplierName,
       submitterEmail: user.email ?? null,
       submissionReference,
+      contractPONumber: contractNumber ?? undefined,
+      description: description ?? undefined,
     })
     .returning();
 
@@ -166,6 +168,67 @@ router.post("/vendor/submissions", async (req, res) => {
 
   const submission = await buildSubmission(invoice);
   res.status(201).json(submission);
+});
+
+router.put("/vendor/submissions/:id", async (req, res) => {
+  if (!req.session?.userId) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, req.session.userId))
+    .limit(1);
+  if (!user || user.role !== "vendor") {
+    res.status(403).json({ error: "Vendor access required" });
+    return;
+  }
+
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const [invoice] = await db
+    .select()
+    .from(invoicesTable)
+    .where(and(eq(invoicesTable.id, id), eq(invoicesTable.submitterUserId, user.id)))
+    .limit(1);
+
+  if (!invoice) {
+    res.status(404).json({ error: "Submission not found" });
+    return;
+  }
+
+  if (invoice.invoiceStatus !== "Awaiting Processing") {
+    res.status(409).json({ error: "This submission can no longer be edited because it has already been picked up for processing." });
+    return;
+  }
+
+  const { invoiceNumber, invoiceDate, invoiceAmount, contractNumber, poNumber, description } = req.body;
+
+  if (!invoiceNumber || !invoiceDate || invoiceAmount === undefined) {
+    res.status(400).json({ error: "invoiceNumber, invoiceDate, and invoiceAmount are required" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(invoicesTable)
+    .set({
+      invoiceNumber,
+      invoiceDate,
+      invoiceAmount: String(invoiceAmount),
+      contractPONumber: contractNumber ?? undefined,
+      description: description ?? undefined,
+      updatedAt: new Date(),
+    })
+    .where(eq(invoicesTable.id, id))
+    .returning();
+
+  const submission = await buildSubmission(updated);
+  res.json(submission);
 });
 
 router.get("/vendor/submissions/:id", async (req, res) => {
