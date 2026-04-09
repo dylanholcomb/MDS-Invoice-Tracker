@@ -1,0 +1,16 @@
+<environmentvariabledefinition schemaname="invoicet_InvoiceTrackingStaff">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <defaultvalue>be18448d-04cf-4f2d-9a04-d93c1ea92878</defaultvalue>
+  <displayname default="InvoiceTrackingStaff">
+    <label description="InvoiceTrackingStaff" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.20221016</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>invoicet_InvoiceTrackingSite</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>
