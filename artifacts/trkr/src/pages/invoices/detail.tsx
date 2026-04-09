@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import {
   useGetInvoice,
@@ -21,7 +21,89 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Edit, X, Check, AlertTriangle, CheckCircle2, Circle } from "lucide-react";
+import { Loader2, ArrowLeft, Edit, X, Check, AlertTriangle, CheckCircle2, Circle, Paperclip, ExternalLink } from "lucide-react";
+
+interface InvoiceAttachment {
+  id: number;
+  filename: string;
+  contentType?: string | null;
+  fileSize?: number | null;
+  objectPath: string;
+  uploadedBy?: string | null;
+  uploadedAt: string;
+}
+
+function AttachmentsSection({ invoiceId }: { invoiceId: number }) {
+  const [attachments, setAttachments] = useState<InvoiceAttachment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dlLoading, setDlLoading] = useState<number | null>(null);
+  const BASE = import.meta.env.BASE_URL.replace(/\/$/, "") || "";
+
+  useEffect(() => {
+    fetch(`${BASE}/api/invoices/${invoiceId}/attachments`)
+      .then(r => r.ok ? r.json() : [])
+      .then(setAttachments)
+      .catch(() => setAttachments([]))
+      .finally(() => setLoading(false));
+  }, [invoiceId]);
+
+  if (loading) return null;
+  if (attachments.length === 0) return null;
+
+  const handleView = async (att: InvoiceAttachment, idx: number) => {
+    setDlLoading(idx);
+    try {
+      const res = await fetch(`${BASE}/api/storage/download-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ objectPath: att.objectPath }),
+      });
+      if (res.ok) {
+        const { downloadUrl } = await res.json();
+        window.open(downloadUrl, "_blank");
+      }
+    } finally {
+      setDlLoading(null);
+    }
+  };
+
+  return (
+    <div className="bg-card border border-card-border rounded-lg p-5">
+      <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+        <Paperclip className="h-4 w-4 text-muted-foreground" />
+        Vendor Attachments ({attachments.length})
+      </h2>
+      <ul className="space-y-2">
+        {attachments.map((att, idx) => (
+          <li key={att.id} className="flex items-center gap-3 bg-muted/40 border border-border rounded px-3 py-2">
+            <Paperclip className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{att.filename}</p>
+              <p className="text-xs text-muted-foreground">
+                {att.uploadedBy ? `Uploaded by ${att.uploadedBy}` : "Vendor upload"}
+                {att.fileSize ? ` · ${(att.fileSize / 1024).toFixed(1)} KB` : ""}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 h-7 px-2 text-xs gap-1"
+              onClick={() => handleView(att, idx)}
+              disabled={dlLoading === idx}
+            >
+              {dlLoading === idx ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <ExternalLink className="h-3 w-3" />
+              )}
+              View
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const STATUSES = [
   "Awaiting Processing",
@@ -669,6 +751,8 @@ export default function InvoiceDetailPage() {
             </div>
           )}
         </div>
+
+        <AttachmentsSection invoiceId={invoice.id} />
 
         {(invoice.submissionNotes || invoice.statusNotes) && (
           <div className="bg-card border border-card-border rounded-lg p-5">

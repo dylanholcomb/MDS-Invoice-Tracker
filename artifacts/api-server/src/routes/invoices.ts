@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, and, ilike, or, sql, desc, asc } from "drizzle-orm";
 import { db } from "../lib/db";
-import { invoicesTable, invoiceActivityTable } from "@workspace/db";
+import { invoicesTable, invoiceActivityTable, invoiceAttachmentsTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 
 const router: IRouter = Router();
@@ -391,5 +391,28 @@ function serializeInvoice(inv: typeof invoicesTable.$inferSelect) {
     updatedAt: inv.updatedAt.toISOString(),
   };
 }
+
+router.get("/invoices/:id/attachments", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid invoice ID" });
+    return;
+  }
+  const attachments = await db
+    .select()
+    .from(invoiceAttachmentsTable)
+    .where(eq(invoiceAttachmentsTable.invoiceId, id));
+  res.json(
+    attachments.map((a) => ({
+      id: a.id,
+      filename: a.filename,
+      contentType: a.contentType,
+      fileSize: a.fileSize,
+      objectPath: a.objectPath,
+      uploadedBy: a.uploadedBy,
+      uploadedAt: a.uploadedAt.toISOString(),
+    }))
+  );
+});
 
 export default router;

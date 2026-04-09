@@ -340,6 +340,52 @@ export interface ActivityEntry {
   notes?: string | null;
 }
 
+export interface VendorLoginBody {
+  username: string;
+  password: string;
+}
+
+export interface VendorInvoiceSubmitBody {
+  invoiceNumber: string;
+  invoiceDate: string;
+  invoiceAmount: number;
+  contractNumber?: string;
+  poNumber?: string;
+  description?: string;
+  attachmentPaths?: string[];
+}
+
+export interface VendorAttachment {
+  id: number;
+  filename: string;
+  contentType?: string | null;
+  fileSize?: number | null;
+  uploadedAt: string;
+}
+
+export interface VendorSubmission {
+  id: number;
+  invoiceNumber: string;
+  invoiceDate: string;
+  invoiceAmount: number;
+  submissionReference?: string | null;
+  status: string;
+  contractNumber?: string | null;
+  poNumber?: string | null;
+  description?: string | null;
+  createdAt: string;
+  attachments?: VendorAttachment[];
+}
+
+export interface StorageUploadUrlResponse {
+  uploadUrl: string;
+  objectPath: string;
+}
+
+export interface StorageDownloadUrlResponse {
+  downloadUrl: string;
+}
+
 export type ListInvoicesParams = {
   status?: string;
   unit?: string;
@@ -380,4 +426,13 @@ export type ListSpeedchartsParams = {
 
 export type GetRecentActivityParams = {
   limit?: number;
+};
+
+export type GetUploadUrlBody = {
+  filename: string;
+  contentType?: string;
+};
+
+export type GetDownloadUrlBody = {
+  objectPath: string;
 };

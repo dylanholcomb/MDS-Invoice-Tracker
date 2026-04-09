@@ -27,7 +27,9 @@ import type {
   DuplicateCheckBody,
   DuplicateCheckResult,
   ErrorResponse,
+  GetDownloadUrlBody,
   GetRecentActivityParams,
+  GetUploadUrlBody,
   HealthStatus,
   Invoice,
   InvoiceListResponse,
@@ -40,10 +42,14 @@ import type {
   PurchaseOrder,
   Speedchart,
   StaffRoute,
+  StorageDownloadUrlResponse,
+  StorageUploadUrlResponse,
   Supplier,
   UpdateInvoiceBody,
   UpdateStaffBody,
   UpdateSupplierBody,
+  VendorInvoiceSubmitBody,
+  VendorSubmission,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -2086,3 +2092,497 @@ export function useGetRecentActivity<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get current vendor session user
+ */
+export const getGetVendorMeUrl = () => {
+  return `/api/vendor/me`;
+};
+
+export const getVendorMe = async (options?: RequestInit): Promise<AuthUser> => {
+  return customFetch<AuthUser>(getGetVendorMeUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetVendorMeQueryKey = () => {
+  return [`/api/vendor/me`] as const;
+};
+
+export const getGetVendorMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getVendorMe>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getVendorMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetVendorMeQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getVendorMe>>> = ({
+    signal,
+  }) => getVendorMe({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getVendorMe>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetVendorMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getVendorMe>>
+>;
+export type GetVendorMeQueryError = ErrorType<void>;
+
+/**
+ * @summary Get current vendor session user
+ */
+
+export function useGetVendorMe<
+  TData = Awaited<ReturnType<typeof getVendorMe>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getVendorMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetVendorMeQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all submissions by the authenticated vendor
+ */
+export const getListVendorSubmissionsUrl = () => {
+  return `/api/vendor/submissions`;
+};
+
+export const listVendorSubmissions = async (
+  options?: RequestInit,
+): Promise<VendorSubmission[]> => {
+  return customFetch<VendorSubmission[]>(getListVendorSubmissionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListVendorSubmissionsQueryKey = () => {
+  return [`/api/vendor/submissions`] as const;
+};
+
+export const getListVendorSubmissionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listVendorSubmissions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listVendorSubmissions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListVendorSubmissionsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listVendorSubmissions>>
+  > = ({ signal }) => listVendorSubmissions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listVendorSubmissions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListVendorSubmissionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listVendorSubmissions>>
+>;
+export type ListVendorSubmissionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all submissions by the authenticated vendor
+ */
+
+export function useListVendorSubmissions<
+  TData = Awaited<ReturnType<typeof listVendorSubmissions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listVendorSubmissions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListVendorSubmissionsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Submit a new invoice as a vendor
+ */
+export const getCreateVendorSubmissionUrl = () => {
+  return `/api/vendor/submissions`;
+};
+
+export const createVendorSubmission = async (
+  vendorInvoiceSubmitBody: VendorInvoiceSubmitBody,
+  options?: RequestInit,
+): Promise<VendorSubmission> => {
+  return customFetch<VendorSubmission>(getCreateVendorSubmissionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(vendorInvoiceSubmitBody),
+  });
+};
+
+export const getCreateVendorSubmissionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createVendorSubmission>>,
+    TError,
+    { data: BodyType<VendorInvoiceSubmitBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createVendorSubmission>>,
+  TError,
+  { data: BodyType<VendorInvoiceSubmitBody> },
+  TContext
+> => {
+  const mutationKey = ["createVendorSubmission"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createVendorSubmission>>,
+    { data: BodyType<VendorInvoiceSubmitBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createVendorSubmission(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateVendorSubmissionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createVendorSubmission>>
+>;
+export type CreateVendorSubmissionMutationBody =
+  BodyType<VendorInvoiceSubmitBody>;
+export type CreateVendorSubmissionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Submit a new invoice as a vendor
+ */
+export const useCreateVendorSubmission = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createVendorSubmission>>,
+    TError,
+    { data: BodyType<VendorInvoiceSubmitBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createVendorSubmission>>,
+  TError,
+  { data: BodyType<VendorInvoiceSubmitBody> },
+  TContext
+> => {
+  return useMutation(getCreateVendorSubmissionMutationOptions(options));
+};
+
+/**
+ * @summary Get a single vendor submission by ID
+ */
+export const getGetVendorSubmissionUrl = (id: number) => {
+  return `/api/vendor/submissions/${id}`;
+};
+
+export const getVendorSubmission = async (
+  id: number,
+  options?: RequestInit,
+): Promise<VendorSubmission> => {
+  return customFetch<VendorSubmission>(getGetVendorSubmissionUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetVendorSubmissionQueryKey = (id: number) => {
+  return [`/api/vendor/submissions/${id}`] as const;
+};
+
+export const getGetVendorSubmissionQueryOptions = <
+  TData = Awaited<ReturnType<typeof getVendorSubmission>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getVendorSubmission>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetVendorSubmissionQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getVendorSubmission>>
+  > = ({ signal }) => getVendorSubmission(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getVendorSubmission>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetVendorSubmissionQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getVendorSubmission>>
+>;
+export type GetVendorSubmissionQueryError = ErrorType<void>;
+
+/**
+ * @summary Get a single vendor submission by ID
+ */
+
+export function useGetVendorSubmission<
+  TData = Awaited<ReturnType<typeof getVendorSubmission>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getVendorSubmission>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetVendorSubmissionQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a presigned URL for uploading a file
+ */
+export const getGetUploadUrlUrl = () => {
+  return `/api/storage/upload-url`;
+};
+
+export const getUploadUrl = async (
+  getUploadUrlBody: GetUploadUrlBody,
+  options?: RequestInit,
+): Promise<StorageUploadUrlResponse> => {
+  return customFetch<StorageUploadUrlResponse>(getGetUploadUrlUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(getUploadUrlBody),
+  });
+};
+
+export const getGetUploadUrlMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getUploadUrl>>,
+    TError,
+    { data: BodyType<GetUploadUrlBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof getUploadUrl>>,
+  TError,
+  { data: BodyType<GetUploadUrlBody> },
+  TContext
+> => {
+  const mutationKey = ["getUploadUrl"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof getUploadUrl>>,
+    { data: BodyType<GetUploadUrlBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return getUploadUrl(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GetUploadUrlMutationResult = NonNullable<
+  Awaited<ReturnType<typeof getUploadUrl>>
+>;
+export type GetUploadUrlMutationBody = BodyType<GetUploadUrlBody>;
+export type GetUploadUrlMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Get a presigned URL for uploading a file
+ */
+export const useGetUploadUrl = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getUploadUrl>>,
+    TError,
+    { data: BodyType<GetUploadUrlBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof getUploadUrl>>,
+  TError,
+  { data: BodyType<GetUploadUrlBody> },
+  TContext
+> => {
+  return useMutation(getGetUploadUrlMutationOptions(options));
+};
+
+/**
+ * @summary Get a presigned URL for downloading a file
+ */
+export const getGetDownloadUrlUrl = () => {
+  return `/api/storage/download-url`;
+};
+
+export const getDownloadUrl = async (
+  getDownloadUrlBody: GetDownloadUrlBody,
+  options?: RequestInit,
+): Promise<StorageDownloadUrlResponse> => {
+  return customFetch<StorageDownloadUrlResponse>(getGetDownloadUrlUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(getDownloadUrlBody),
+  });
+};
+
+export const getGetDownloadUrlMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getDownloadUrl>>,
+    TError,
+    { data: BodyType<GetDownloadUrlBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof getDownloadUrl>>,
+  TError,
+  { data: BodyType<GetDownloadUrlBody> },
+  TContext
+> => {
+  const mutationKey = ["getDownloadUrl"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof getDownloadUrl>>,
+    { data: BodyType<GetDownloadUrlBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return getDownloadUrl(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GetDownloadUrlMutationResult = NonNullable<
+  Awaited<ReturnType<typeof getDownloadUrl>>
+>;
+export type GetDownloadUrlMutationBody = BodyType<GetDownloadUrlBody>;
+export type GetDownloadUrlMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Get a presigned URL for downloading a file
+ */
+export const useGetDownloadUrl = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getDownloadUrl>>,
+    TError,
+    { data: BodyType<GetDownloadUrlBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof getDownloadUrl>>,
+  TError,
+  { data: BodyType<GetDownloadUrlBody> },
+  TContext
+> => {
+  return useMutation(getGetDownloadUrlMutationOptions(options));
+};

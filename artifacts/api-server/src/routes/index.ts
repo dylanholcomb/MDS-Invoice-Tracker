@@ -7,6 +7,8 @@ import purchaseOrdersRouter from "./purchase-orders";
 import speedchartsRouter from "./speedcharts";
 import staffRouter from "./staff";
 import dashboardRouter from "./dashboard";
+import storageRouter from "./storage";
+import vendorRouter from "./vendor";
 
 const router: IRouter = Router();
 
@@ -18,5 +20,7 @@ router.use(purchaseOrdersRouter);
 router.use(speedchartsRouter);
 router.use(staffRouter);
 router.use(dashboardRouter);
+router.use(storageRouter);
+router.use(vendorRouter);
 
 export default router;

@@ -23,6 +23,10 @@ tags:
     description: Staff routing configuration
   - name: dashboard
     description: Dashboard and analytics
+  - name: vendor
+    description: Vendor submission portal
+  - name: storage
+    description: File object storage
 
 paths:
   /healthz:
@@ -542,6 +546,122 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ActivityEntry"
+
+  /vendor/me:
+    get:
+      operationId: getVendorMe
+      tags: [vendor]
+      summary: Get current vendor session user
+      responses:
+        "200":
+          description: Current vendor user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+
+  /vendor/submissions:
+    get:
+      operationId: listVendorSubmissions
+      tags: [vendor]
+      summary: List all submissions by the authenticated vendor
+      responses:
+        "200":
+          description: List of vendor submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorSubmission"
+    post:
+      operationId: createVendorSubmission
+      tags: [vendor]
+      summary: Submit a new invoice as a vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorInvoiceSubmitBody"
+      responses:
+        "201":
+          description: Submission created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorSubmission"
+
+  /vendor/submissions/{id}:
+    get:
+      operationId: getVendorSubmission
+      tags: [vendor]
+      summary: Get a single vendor submission by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vendor submission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorSubmission"
+        "404":
+          description: Not found
+
+  /storage/upload-url:
+    post:
+      operationId: getUploadUrl
+      tags: [storage]
+      summary: Get a presigned URL for uploading a file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                contentType:
+                  type: string
+              required: [filename]
+      responses:
+        "200":
+          description: Upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageUploadUrlResponse"
+
+  /storage/download-url:
+    post:
+      operationId: getDownloadUrl
+      tags: [storage]
+      summary: Get a presigned URL for downloading a file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                objectPath:
+                  type: string
+              required: [objectPath]
+      responses:
+        "200":
+          description: Download URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageDownloadUrlResponse"
 
 components:
   schemas:
@@ -1370,3 +1490,99 @@ components:
           type: string
           nullable: true
       required: [id, invoiceId, invoiceNumber, action, changedAt]
+
+    VendorLoginBody:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+
+    VendorInvoiceSubmitBody:
+      type: object
+      properties:
+        invoiceNumber:
+          type: string
+        invoiceDate:
+          type: string
+        invoiceAmount:
+          type: number
+        contractNumber:
+          type: string
+        poNumber:
+          type: string
+        description:
+          type: string
+        attachmentPaths:
+          type: array
+          items:
+            type: string
+      required: [invoiceNumber, invoiceDate, invoiceAmount]
+
+    VendorSubmission:
+      type: object
+      properties:
+        id:
+          type: integer
+        invoiceNumber:
+          type: string
+        invoiceDate:
+          type: string
+        invoiceAmount:
+          type: number
+        submissionReference:
+          type: string
+          nullable: true
+        status:
+          type: string
+        contractNumber:
+          type: string
+          nullable: true
+        poNumber:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorAttachment'
+      required: [id, invoiceNumber, invoiceDate, invoiceAmount, status, createdAt]
+
+    VendorAttachment:
+      type: object
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        contentType:
+          type: string
+          nullable: true
+        fileSize:
+          type: integer
+          nullable: true
+        uploadedAt:
+          type: string
+      required: [id, filename, uploadedAt]
+
+    StorageUploadUrlResponse:
+      type: object
+      properties:
+        uploadUrl:
+          type: string
+        objectPath:
+          type: string
+      required: [uploadUrl, objectPath]
+
+    StorageDownloadUrlResponse:
+      type: object
+      properties:
+        downloadUrl:
+          type: string
+      required: [downloadUrl]

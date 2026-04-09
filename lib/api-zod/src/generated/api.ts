@@ -670,3 +670,111 @@ export const GetRecentActivityResponseItem = zod.object({
 export const GetRecentActivityResponse = zod.array(
   GetRecentActivityResponseItem,
 );
+
+/**
+ * @summary Get current vendor session user
+ */
+export const GetVendorMeResponse = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  displayName: zod.string(),
+  role: zod.string(),
+});
+
+/**
+ * @summary List all submissions by the authenticated vendor
+ */
+export const ListVendorSubmissionsResponseItem = zod.object({
+  id: zod.number(),
+  invoiceNumber: zod.string(),
+  invoiceDate: zod.string(),
+  invoiceAmount: zod.number(),
+  submissionReference: zod.string().nullish(),
+  status: zod.string(),
+  contractNumber: zod.string().nullish(),
+  poNumber: zod.string().nullish(),
+  description: zod.string().nullish(),
+  createdAt: zod.string(),
+  attachments: zod
+    .array(
+      zod.object({
+        id: zod.number(),
+        filename: zod.string(),
+        contentType: zod.string().nullish(),
+        fileSize: zod.number().nullish(),
+        uploadedAt: zod.string(),
+      }),
+    )
+    .optional(),
+});
+export const ListVendorSubmissionsResponse = zod.array(
+  ListVendorSubmissionsResponseItem,
+);
+
+/**
+ * @summary Submit a new invoice as a vendor
+ */
+export const CreateVendorSubmissionBody = zod.object({
+  invoiceNumber: zod.string(),
+  invoiceDate: zod.string(),
+  invoiceAmount: zod.number(),
+  contractNumber: zod.string().optional(),
+  poNumber: zod.string().optional(),
+  description: zod.string().optional(),
+  attachmentPaths: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary Get a single vendor submission by ID
+ */
+export const GetVendorSubmissionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetVendorSubmissionResponse = zod.object({
+  id: zod.number(),
+  invoiceNumber: zod.string(),
+  invoiceDate: zod.string(),
+  invoiceAmount: zod.number(),
+  submissionReference: zod.string().nullish(),
+  status: zod.string(),
+  contractNumber: zod.string().nullish(),
+  poNumber: zod.string().nullish(),
+  description: zod.string().nullish(),
+  createdAt: zod.string(),
+  attachments: zod
+    .array(
+      zod.object({
+        id: zod.number(),
+        filename: zod.string(),
+        contentType: zod.string().nullish(),
+        fileSize: zod.number().nullish(),
+        uploadedAt: zod.string(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * @summary Get a presigned URL for uploading a file
+ */
+export const GetUploadUrlBody = zod.object({
+  filename: zod.string(),
+  contentType: zod.string().optional(),
+});
+
+export const GetUploadUrlResponse = zod.object({
+  uploadUrl: zod.string(),
+  objectPath: zod.string(),
+});
+
+/**
+ * @summary Get a presigned URL for downloading a file
+ */
+export const GetDownloadUrlBody = zod.object({
+  objectPath: zod.string(),
+});
+
+export const GetDownloadUrlResponse = zod.object({
+  downloadUrl: zod.string(),
+});

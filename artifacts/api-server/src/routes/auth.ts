@@ -32,6 +32,7 @@ router.post("/auth/login", async (req, res) => {
 
   req.session!.userId = user.id;
   req.session!.username = user.username;
+  req.session!.role = user.role;
 
   res.json({
     id: user.id,

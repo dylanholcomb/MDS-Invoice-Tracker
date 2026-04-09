@@ -16,6 +16,8 @@ export const usersTable = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name").notNull(),
   role: text("role").notNull().default("accountant"),
+  linkedSupplierId: text("linked_supplier_id"),
+  email: text("email"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -74,6 +76,8 @@ export const invoicesTable = pgTable("invoices", {
   covid19Related: text("covid19_related"),
   submitterName: text("submitter_name"),
   submitterEmail: text("submitter_email"),
+  submitterUserId: integer("submitter_user_id"),
+  submissionReference: text("submission_reference"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -193,3 +197,23 @@ export const insertInvoiceActivitySchema = createInsertSchema(invoiceActivityTab
 });
 export type InsertInvoiceActivity = z.infer<typeof insertInvoiceActivitySchema>;
 export type InvoiceActivity = typeof invoiceActivityTable.$inferSelect;
+
+export const invoiceAttachmentsTable = pgTable("invoice_attachments", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id")
+    .notNull()
+    .references(() => invoicesTable.id, { onDelete: "cascade" }),
+  filename: text("filename").notNull(),
+  objectPath: text("object_path").notNull(),
+  contentType: text("content_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: text("uploaded_by"),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+});
+
+export const insertInvoiceAttachmentSchema = createInsertSchema(invoiceAttachmentsTable).omit({
+  id: true,
+  uploadedAt: true,
+});
+export type InsertInvoiceAttachment = z.infer<typeof insertInvoiceAttachmentSchema>;
+export type InvoiceAttachment = typeof invoiceAttachmentsTable.$inferSelect;
