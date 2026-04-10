@@ -62,7 +62,7 @@ export default function LoginPage() {
             TRKR
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Mosaic Data Solutions</p>
-          <p className="text-xs text-muted-foreground mt-2">Government Invoice Tracking System</p>
+          <p className="text-xs text-muted-foreground mt-2">Invoice Tracking System</p>
         </div>
 
         <div className="bg-card border border-card-border rounded-lg shadow-sm p-8">
