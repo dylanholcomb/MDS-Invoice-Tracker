@@ -2,14 +2,14 @@ import { Router, type IRouter } from "express";
 import { sql, desc, inArray, and, lt } from "drizzle-orm";
 import { db } from "../lib/db";
 import { invoicesTable, invoiceActivityTable } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { requireRole } from "../lib/auth";
 
 const STALE_DAYS = 45;
 const ACTIVE_STATUSES = ["Awaiting Processing", "In Progress", "Receipted", "Processed in Accounting", "Approved in Accounting"];
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+router.use("/dashboard", requireRole("admin", "accountant", "approver", "staff"));
 
 router.get("/dashboard/stats", async (req, res) => {
   const staleThreshold = new Date(Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000);

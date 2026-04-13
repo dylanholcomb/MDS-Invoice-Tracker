@@ -41,7 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await logoutMutation.mutateAsync();
-    await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+    queryClient.setQueryData(getGetMeQueryKey(), null);
+    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
   }, [logoutMutation, queryClient]);
 
   return (

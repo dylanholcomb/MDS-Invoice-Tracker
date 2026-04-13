@@ -4,12 +4,12 @@ import multer from "multer";
 import * as XLSX from "xlsx";
 import { db } from "../lib/db";
 import { invoicesTable, invoiceActivityTable } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { requireRole } from "../lib/auth";
 
 const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
-router.use(requireAuth);
+router.use("/invoices/fiscal-import", requireRole("admin"));
 
 function normalizeHeader(h: string) {
   return h.trim().toLowerCase().replace(/[\s_\-\.]+/g, "");
@@ -158,10 +158,10 @@ router.post("/invoices/fiscal-import/preview", upload.single("file"), async (req
 });
 
 router.post("/invoices/fiscal-import/execute", async (req, res) => {
-  const { rows, changedBy } = req.body as {
+  const { rows } = req.body as {
     rows: ImportPreviewRow[];
-    changedBy?: string;
   };
+  const changedBy = req.session?.username ?? "system";
 
   if (!Array.isArray(rows)) { res.status(400).json({ error: "rows array required" }); return; }
 

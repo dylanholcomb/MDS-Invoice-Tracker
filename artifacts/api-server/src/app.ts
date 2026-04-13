@@ -35,9 +35,26 @@ app.use(
   }),
 );
 
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  : [];
+
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (
+        ALLOWED_ORIGINS.length === 0 ||
+        ALLOWED_ORIGINS.some((allowed) => origin === allowed || origin.endsWith(".replit.dev") || origin.endsWith(".repl.co"))
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS: origin not allowed"));
+      }
+    },
     credentials: true,
   })
 );
@@ -45,9 +62,17 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET environment variable must be set in production");
+  }
+  logger.warn("SESSION_SECRET is not set — using insecure development fallback");
+}
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET ?? "trkr-dev-secret",
+    secret: sessionSecret ?? "trkr-dev-secret",
     resave: false,
     saveUninitialized: false,
     cookie: {

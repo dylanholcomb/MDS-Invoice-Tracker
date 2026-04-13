@@ -155,15 +155,21 @@ router.post("/vendor/submissions", async (req, res) => {
     })
     .returning();
 
+  const VALID_OBJECT_PATH = /^\/objects\/[a-zA-Z0-9_\-./]+$/;
   if (attachmentPaths && Array.isArray(attachmentPaths) && attachmentPaths.length > 0) {
-    await db.insert(invoiceAttachmentsTable).values(
-      attachmentPaths.map((path: string) => ({
-        invoiceId: invoice.id,
-        filename: path.split("/").pop() ?? path,
-        objectPath: path,
-        uploadedBy: user.username,
-      }))
+    const validPaths = (attachmentPaths as unknown[]).filter(
+      (p): p is string => typeof p === "string" && VALID_OBJECT_PATH.test(p)
     );
+    if (validPaths.length > 0) {
+      await db.insert(invoiceAttachmentsTable).values(
+        validPaths.map((path) => ({
+          invoiceId: invoice.id,
+          filename: path.split("/").pop() ?? path,
+          objectPath: path,
+          uploadedBy: user.username,
+        }))
+      );
+    }
   }
 
   const submission = await buildSubmission(invoice);

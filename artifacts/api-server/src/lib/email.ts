@@ -27,11 +27,17 @@ export interface InvoiceReturnedPayload {
   submissionReference?: string | null;
 }
 
+function redactEmail(email: string | null | undefined): string {
+  if (!email) return "[none]";
+  const [local, domain] = email.split("@");
+  return `${local[0]}***@${domain ?? "?"}`;
+}
+
 export async function sendReturnedEmail(payload: InvoiceReturnedPayload): Promise<void> {
   if (!isConfigured()) {
     console.log(
       `[email] SMTP not configured — skipping return notification for invoice ${payload.invoiceNumber} ` +
-      `(to: ${payload.submitterEmail ?? "no email on file"})`
+      `(to: ${redactEmail(payload.submitterEmail)})`
     );
     return;
   }
@@ -66,7 +72,7 @@ export async function sendReturnedEmail(payload: InvoiceReturnedPayload): Promis
     text,
   });
 
-  console.log(`[email] Return notification sent for invoice ${payload.invoiceNumber} → ${payload.submitterEmail}`);
+  console.log(`[email] Return notification sent for invoice ${payload.invoiceNumber} → ${redactEmail(payload.submitterEmail)}`);
 }
 
 export interface ReturnReminderPayload {
@@ -96,5 +102,5 @@ export async function sendReturnReminderEmail(payload: ReturnReminderPayload): P
   ].filter((l) => l !== undefined).join("\n");
 
   await transport.sendMail({ from: SMTP_FROM, to: payload.submitterEmail, subject, text });
-  console.log(`[email] Return reminder sent for invoice ${payload.invoiceNumber} → ${payload.submitterEmail}`);
+  console.log(`[email] Return reminder sent for invoice ${payload.invoiceNumber} → ${redactEmail(payload.submitterEmail)}`);
 }

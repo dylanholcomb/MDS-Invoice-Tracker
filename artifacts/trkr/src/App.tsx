@@ -25,8 +25,10 @@ const queryClient = new QueryClient({
   },
 });
 
+const INTERNAL_ROLES = ["admin", "accountant", "approver", "staff"];
+
 function AuthGate({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
 
   if (isLoading) {
     return (
@@ -38,6 +40,25 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <LoginPage />;
+  }
+
+  if (!INTERNAL_ROLES.includes(user.role)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-sm">
+          <p className="text-sm font-semibold text-foreground mb-1">Access Denied</p>
+          <p className="text-xs text-muted-foreground mb-6">
+            Your account does not have permission to access this system. Vendors should use the Vendor Portal.
+          </p>
+          <button
+            onClick={() => logout()}
+            className="text-xs text-primary underline"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

@@ -4,12 +4,12 @@ import multer from "multer";
 import * as XLSX from "xlsx";
 import { db } from "../lib/db";
 import { speedchartsTable } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { requireRole } from "../lib/auth";
 
 const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-router.use(requireAuth);
+router.use("/speedcharts", requireRole("admin", "accountant", "approver", "staff"));
 
 function serialize(s: typeof speedchartsTable.$inferSelect) {
   return { ...s, createdAt: s.createdAt.toISOString(), updatedAt: s.updatedAt.toISOString() };

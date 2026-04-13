@@ -2,12 +2,12 @@ import { Router, type IRouter } from "express";
 import { eq, and, ilike, or, sql, desc, asc } from "drizzle-orm";
 import { db } from "../lib/db";
 import { invoicesTable, invoiceActivityTable, invoiceAttachmentsTable } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { requireRole } from "../lib/auth";
 import { sendReturnedEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+router.use("/invoices", requireRole("admin", "accountant", "approver", "staff"));
 
 router.get("/invoices", async (req, res) => {
   const {

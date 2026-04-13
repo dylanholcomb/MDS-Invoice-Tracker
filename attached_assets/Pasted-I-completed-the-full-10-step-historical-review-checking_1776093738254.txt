@@ -1,0 +1,82 @@
+I completed the full 10-step historical review, checking out each target revision sequentially and auditing security posture at that point in time.
+
+Important scope note: this repo currently has no merged PR records in GitHub (gh pr list --state merged returned empty), so I reviewed the 10 most recent commits as the closest equivalent timeline:
+
+41ce938
+eafb708
+b99e9ed
+b2053c9
+6b0f3bf
+1ddfc14
+258d430
+052826b
+a8b148e
+398d8f4
+Findings (ordered by severity)
+CRITICAL
+Missing RBAC allows vendor-to-internal privilege escalation and broad data exposure
+
+Introduced/worsened from b2053c9 onward (vendor role exists).
+Internal routes use requireAuth only, not role checks:
+artifacts/api-server/src/routes/invoices.ts (router.use(requireAuth))
+.../suppliers.ts, .../staff.ts, .../dashboard.ts, .../speedcharts.ts, .../fiscal-import.ts
+Impact: any authenticated vendor can potentially list/edit/delete internal invoice/accounting data, and access operational datasets not scoped to their organization.
+Object storage IDOR / unauthorized file access (download path signing without ownership check)
+
+b2053c9 onward.
+artifacts/api-server/src/routes/storage.ts:28-65 (/storage/download-url) signs any provided objectPath for any authenticated user.
+No check that requester owns the file or belongs to allowed ACL group.
+Direct object streaming endpoint lacks ACL enforcement
+
+b2053c9 onward.
+artifacts/api-server/src/routes/storage.ts:95-122 (/storage/objects/*path) only verifies session, then serves object.
+ObjectStorageService.canAccessObjectEntity exists but is not enforced in this path.
+Impact: authenticated horizontal access to private objects.
+Mass-status ERP import exposed to any authenticated user (including vendors)
+
+052826b onward.
+artifacts/api-server/src/routes/fiscal-import.ts uses requireAuth only.
+POST /invoices/fiscal-import/execute can bulk-update invoice workflow status and references.
+Impact: high-integrity compromise (tampering with financial workflow states).
+HIGH
+Client-controlled audit identity (changedBy) enables audit log spoofing
+
+052826b, .../routes/fiscal-import.ts:160-207.
+changedBy comes from request body and is written to invoice_activity.
+Impact: forensic trust breakdown / repudiation risk.
+Attachment path trust without ownership validation
+
+b2053c9 and 6b0f3bf in .../routes/vendor.ts (attachmentPaths accepted directly).
+Server inserts arbitrary provided object paths into invoice attachments; no server-side proof that path was uploaded by that vendor/user.
+Combined with storage issues, this aids cross-tenant file association/exfiltration.
+MEDIUM
+Insecure default session secret fallback
+
+Seen from eafb708 onward in artifacts/api-server/src/app.ts:49.
+secret: process.env.SESSION_SECRET ?? "trkr-dev-secret"
+If environment misconfigured, predictable secret undermines session integrity.
+Overly permissive credentialed CORS configuration
+
+app.ts:38-42 sets origin: true and credentials: true.
+Reflective origin with credentials is risky unless strictly combined with CSRF controls and strict cookie policy.
+Potential PII leakage in logs (email addresses)
+
+052826b in:
+artifacts/api-server/src/lib/email.ts (logs recipient email)
+.../lib/stale-check.ts (logs reminder operations and identifiers)
+Impact depends on log access controls/retention.
+Infrastructure/internal URL disclosure in committed environment variable assets
+
+41ce938 includes tenant/site URLs and IDs in attached_assets/environmentvariable* files (e.g., SharePoint and Power Apps tenant-linked URLs).
+No raw credentials found, but this is still environment intelligence leakage.
+Commit-by-commit status summary
+41ce938: Info disclosure risk (internal environment URLs/IDs in assets).
+eafb708: Auth/session baseline issues (weak fallback secret, permissive CORS, no RBAC pattern).
+b99e9ed: No major new security controls; existing authz model unchanged.
+b2053c9: Major regression (vendor role introduced + storage/object access controls insufficient).
+6b0f3bf: Vendor edit path added; core authz/storage risks persist.
+1ddfc14: Port exposure config change; potential attack surface increase depending on deployment.
+258d430: Screenshot asset commit; no embedded secret strings detected from metadata/string scan (OCR not available).
+052826b: Major regression (ERP import endpoints and audit spoof vector).
+a8b148e: API schema rename only; no material security change.
+398d8f4: UI text-only change; no material security change.

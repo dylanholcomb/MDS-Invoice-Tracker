@@ -1,9 +1,41 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import { eq } from "drizzle-orm";
 import { Readable } from "stream";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
+import { db } from "../lib/db";
+import { invoiceAttachmentsTable, invoicesTable, usersTable } from "@workspace/db";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
+
+const VALID_OBJECT_PATH = /^\/objects\/[a-zA-Z0-9_\-./]+$/;
+
+async function canAccessObjectPath(userId: number, role: string, objectPath: string): Promise<boolean> {
+  if (role === "admin" || role === "accountant" || role === "approver" || role === "staff") {
+    return true;
+  }
+  if (role === "vendor") {
+    const [attachment] = await db
+      .select({ invoiceId: invoiceAttachmentsTable.invoiceId })
+      .from(invoiceAttachmentsTable)
+      .where(eq(invoiceAttachmentsTable.objectPath, objectPath))
+      .limit(1);
+    if (!attachment) return false;
+    const [invoice] = await db
+      .select({ vendorID: invoicesTable.vendorID })
+      .from(invoicesTable)
+      .where(eq(invoicesTable.id, attachment.invoiceId))
+      .limit(1);
+    if (!invoice) return false;
+    const [user] = await db
+      .select({ linkedSupplierId: usersTable.linkedSupplierId })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1);
+    return !!(user?.linkedSupplierId && user.linkedSupplierId === invoice.vendorID);
+  }
+  return false;
+}
 
 router.post("/storage/upload-url", async (req: Request, res: Response) => {
   if (!req.session?.userId) {
@@ -32,8 +64,17 @@ router.post("/storage/download-url", async (req: Request, res: Response) => {
   }
   try {
     const { objectPath } = req.body;
-    if (!objectPath) {
+    if (!objectPath || typeof objectPath !== "string") {
       res.status(400).json({ error: "objectPath is required" });
+      return;
+    }
+    if (!VALID_OBJECT_PATH.test(objectPath)) {
+      res.status(400).json({ error: "Invalid objectPath format" });
+      return;
+    }
+    const allowed = await canAccessObjectPath(req.session.userId, req.session.role, objectPath);
+    if (!allowed) {
+      res.status(403).json({ error: "Forbidden" });
       return;
     }
     const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
@@ -101,6 +142,18 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
     const raw = req.params.path;
     const wildcardPath = Array.isArray(raw) ? raw.join("/") : raw;
     const objectPath = `/objects/${wildcardPath}`;
+
+    if (!VALID_OBJECT_PATH.test(objectPath)) {
+      res.status(400).json({ error: "Invalid object path" });
+      return;
+    }
+
+    const allowed = await canAccessObjectPath(req.session.userId, req.session.role, objectPath);
+    if (!allowed) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
     const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
     const response = await objectStorageService.downloadObject(objectFile);
     res.status(response.status);

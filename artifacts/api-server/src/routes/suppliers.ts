@@ -2,11 +2,11 @@ import { Router, type IRouter } from "express";
 import { eq, ilike, or } from "drizzle-orm";
 import { db } from "../lib/db";
 import { suppliersTable } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { requireRole } from "../lib/auth";
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+router.use("/suppliers", requireRole("admin", "accountant", "approver", "staff"));
 
 router.get("/suppliers", async (req, res) => {
   const { search, limit = "50" } = req.query as Record<string, string>;

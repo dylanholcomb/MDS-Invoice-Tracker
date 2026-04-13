@@ -2,11 +2,11 @@ import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import { staffRoutesTable } from "@workspace/db";
-import { requireAuth } from "../lib/auth";
+import { requireRole } from "../lib/auth";
 
 const router: IRouter = Router();
 
-router.use(requireAuth);
+router.use("/staff", requireRole("admin", "accountant", "approver", "staff"));
 
 router.get("/staff", async (req, res) => {
   const results = await db
