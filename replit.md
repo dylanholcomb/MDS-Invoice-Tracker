@@ -59,10 +59,20 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 ### Database
 
 - `users`: id, username, password_hash, display_name, role, linked_supplier_id, email
-- `invoices`: full invoice lifecycle + submitter_user_id, submission_reference, erp_receipt_ref, erp_voucher_ref, erp_payment_ref, erp_payment_date
+- `invoices`: full invoice lifecycle + submitter_user_id, submission_reference, erp_receipt_ref, erp_voucher_ref, erp_payment_ref, erp_payment_date, assigned_to_user_id, assigned_to_name
 - `invoice_attachments`: id, invoice_id, filename, object_path, content_type, file_size, uploaded_by
+- `invoice_handoffs`: id, invoice_id, invoice_number, requested_by_user_id, requested_by_name, notes, status (pending/approved/rejected), new_assignee_user_id, new_assignee_name, reviewed_by_user_id, reviewed_by_name, reviewed_at, created_at
 - `erp_configs`: id, erp_name, receipt_ref_label, voucher_ref_label, payment_ref_label, payment_date_label, payment_confirmed_label, is_active
 - `suppliers`, `purchase_orders`, `speedcharts`, `staff_routing`, `invoice_activity`
+
+### Invoice Handoff Workflow
+
+Staff/accountant can request reassignment of an invoice via "Request Handoff" on the invoice detail.
+Admin/approver reviews pending requests at `/handoffs` (sidebar nav with amber badge for count).
+Approving picks a new assignee → invoice `assignedToUserId` is updated.
+Admin can also directly reassign any invoice via the "Assignment" section on the invoice detail.
+Dashboard shows a blue alert banner for managers when `pendingHandoffs > 0`.
+API routes: `POST /api/invoices/:id/handoffs`, `GET /api/handoffs`, `POST /api/handoffs/:id/approve`, `POST /api/handoffs/:id/reject`, `GET /api/users/internal`.
 
 ### Object Storage
 

@@ -9,10 +9,16 @@ import {
   Clock,
   Hash,
   FileInput,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { getGetDashboardStatsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "") || "";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -25,10 +31,29 @@ const navItems = [
   { href: "/staff", label: "Staff Routing", icon: Settings },
 ];
 
+const MANAGER_ROLES = ["admin", "approver"];
+
 export function Sidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [pendingHandoffs, setPendingHandoffs] = useState(0);
+
+  const isManager = user?.role && MANAGER_ROLES.includes(user.role);
+
+  useEffect(() => {
+    if (!isManager) return;
+    const fetchCount = () => {
+      fetch(`${BASE}/api/handoffs?status=pending`)
+        .then((r) => r.ok ? r.json() : [])
+        .then((data: { id: number }[]) => setPendingHandoffs(Array.isArray(data) ? data.length : 0))
+        .catch(() => {});
+    };
+    fetchCount();
+    const unsub = queryClient.getQueryCache().subscribe(() => fetchCount());
+    return () => unsub();
+  }, [isManager, queryClient]);
 
   const handleLogout = async () => {
     try {
@@ -72,6 +97,28 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {isManager && (
+          <Link href="/handoffs">
+            <a
+              className={cn(
+                "flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors mx-2 rounded",
+                location === "/handoffs"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+              )}
+              data-testid="nav-handoffs"
+            >
+              <ArrowLeftRight className="h-4 w-4 shrink-0" />
+              Handoffs
+              {pendingHandoffs > 0 && (
+                <span className="ml-auto rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-white leading-none">
+                  {pendingHandoffs}
+                </span>
+              )}
+            </a>
+          </Link>
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border px-4 py-3">

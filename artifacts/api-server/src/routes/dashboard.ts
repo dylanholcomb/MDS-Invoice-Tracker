@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
-import { sql, desc, inArray, and, lt } from "drizzle-orm";
+import { sql, desc, inArray, and, lt, eq } from "drizzle-orm";
 import { db } from "../lib/db";
-import { invoicesTable, invoiceActivityTable } from "@workspace/db";
+import { invoicesTable, invoiceActivityTable, invoiceHandoffsTable } from "@workspace/db";
 import { requireRole } from "../lib/auth";
 
 const STALE_DAYS = 45;
@@ -14,7 +14,7 @@ router.use("/dashboard", requireRole("admin", "accountant", "approver", "staff")
 router.get("/dashboard/stats", async (req, res) => {
   const staleThreshold = new Date(Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000);
 
-  const [totals, byStatus, byUnit, byFiscalYear, flags, stale] = await Promise.all([
+  const [totals, byStatus, byUnit, byFiscalYear, flags, stale, pendingHandoffs] = await Promise.all([
     db
       .select({
         totalInvoices: sql<number>`count(*)`,
@@ -67,6 +67,11 @@ router.get("/dashboard/stats", async (req, res) => {
         inArray(invoicesTable.invoiceStatus, ACTIVE_STATUSES),
         lt(invoicesTable.updatedAt, staleThreshold)
       )),
+
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(invoiceHandoffsTable)
+      .where(eq(invoiceHandoffsTable.status, "pending")),
   ]);
 
   const total = totals[0] ?? { totalInvoices: 0, totalAmount: 0 };
@@ -91,6 +96,7 @@ router.get("/dashboard/stats", async (req, res) => {
         totalAmount: Number(y.totalAmount ?? 0),
       })),
     staleCount: Number(stale[0]?.count ?? 0),
+    pendingHandoffs: Number(pendingHandoffs[0]?.count ?? 0),
     avgProcessingDays: null,
   });
 });

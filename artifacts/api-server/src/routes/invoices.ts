@@ -36,6 +36,13 @@ router.get("/invoices", async (req, res) => {
   if (fiscalYear) conditions.push(eq(invoicesTable.fiscalYear, fiscalYear));
   if (expedite === "true") conditions.push(eq(invoicesTable.expedite, true));
   if (cashHold === "true") conditions.push(eq(invoicesTable.cashHold, true));
+  if (req.query.assignedToUserId) {
+    const uid = parseInt(req.query.assignedToUserId as string, 10);
+    if (!isNaN(uid)) conditions.push(eq(invoicesTable.assignedToUserId, uid));
+  }
+  if (req.query.myQueue === "true" && req.session?.userId) {
+    conditions.push(eq(invoicesTable.assignedToUserId, req.session.userId));
+  }
   if (search) {
     conditions.push(
       or(
@@ -271,6 +278,8 @@ router.patch("/invoices/:id", async (req, res) => {
     "drill2",
     "covid19Related",
     "speedchartCode",
+    "assignedToUserId",
+    "assignedToName",
   ];
 
   for (const field of allowedFields) {

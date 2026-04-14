@@ -79,6 +79,8 @@ export const invoicesTable = pgTable("invoices", {
   submitterEmail: text("submitter_email"),
   submitterUserId: integer("submitter_user_id"),
   submissionReference: text("submission_reference"),
+  assignedToUserId: integer("assigned_to_user_id"),
+  assignedToName: text("assigned_to_name"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -221,6 +223,31 @@ export const insertInvoiceAttachmentSchema = createInsertSchema(invoiceAttachmen
 });
 export type InsertInvoiceAttachment = z.infer<typeof insertInvoiceAttachmentSchema>;
 export type InvoiceAttachment = typeof invoiceAttachmentsTable.$inferSelect;
+
+export const invoiceHandoffsTable = pgTable("invoice_handoffs", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id")
+    .notNull()
+    .references(() => invoicesTable.id, { onDelete: "cascade" }),
+  invoiceNumber: text("invoice_number").notNull(),
+  requestedByUserId: integer("requested_by_user_id").notNull(),
+  requestedByName: text("requested_by_name").notNull(),
+  notes: text("notes"),
+  status: text("status").notNull().default("pending"),
+  newAssigneeUserId: integer("new_assignee_user_id"),
+  newAssigneeName: text("new_assignee_name"),
+  reviewedByUserId: integer("reviewed_by_user_id"),
+  reviewedByName: text("reviewed_by_name"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertInvoiceHandoffSchema = createInsertSchema(invoiceHandoffsTable).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertInvoiceHandoff = z.infer<typeof insertInvoiceHandoffSchema>;
+export type InvoiceHandoff = typeof invoiceHandoffsTable.$inferSelect;
 
 export const erpConfigsTable = pgTable("erp_configs", {
   id: serial("id").primaryKey(),

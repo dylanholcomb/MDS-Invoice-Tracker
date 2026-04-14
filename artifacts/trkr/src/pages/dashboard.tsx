@@ -17,7 +17,8 @@ import {
 import { AppLayout } from "@/components/layout/app-layout";
 import { InvoiceStatusBadge } from "@/components/invoice-status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, AlertTriangle, Clock, CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { FileText, AlertTriangle, Clock, CheckCircle, ArrowLeftRight } from "lucide-react";
 
 function StatCard({
   label,
@@ -51,6 +52,8 @@ function StatCard({
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const isManager = user?.role === "admin" || user?.role === "approver";
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats({
     query: { queryKey: getGetDashboardStatsQueryKey() },
   });
@@ -76,6 +79,16 @@ export default function DashboardPage() {
             <p className="text-sm text-amber-800">
               <span className="font-semibold">{(stats as any).staleCount} invoice{(stats as any).staleCount !== 1 ? "s" : ""}</span> have not advanced status in {45}+ days.{" "}
               <Link href="/aging" className="underline font-medium">Review in Aging Report</Link>
+            </p>
+          </div>
+        )}
+
+        {isManager && !statsLoading && (stats as any)?.pendingHandoffs > 0 && (
+          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-center gap-3" data-testid="alert-pending-handoffs">
+            <ArrowLeftRight className="h-4 w-4 text-blue-600 shrink-0" />
+            <p className="text-sm text-blue-800">
+              <span className="font-semibold">{(stats as any).pendingHandoffs} handoff request{(stats as any).pendingHandoffs !== 1 ? "s" : ""}</span> pending your review.{" "}
+              <Link href="/handoffs" className="underline font-medium">Review now</Link>
             </p>
           </div>
         )}

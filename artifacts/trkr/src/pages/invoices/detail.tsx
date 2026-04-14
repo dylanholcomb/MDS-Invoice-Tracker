@@ -5,6 +5,7 @@ import {
   useUpdateInvoice,
   getGetInvoiceQueryKey,
   getListInvoicesQueryKey,
+  getGetDashboardStatsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/app-layout";
@@ -21,7 +22,153 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Edit, X, Check, AlertTriangle, CheckCircle2, Circle, Paperclip, ExternalLink } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2, ArrowLeft, Edit, X, Check, AlertTriangle, CheckCircle2, Circle, Paperclip, ExternalLink, ArrowLeftRight } from "lucide-react";
+
+const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "") || "";
+
+interface InternalUser {
+  id: number;
+  username: string;
+  displayName: string;
+  role: string;
+}
+
+function HandoffSection({ invoiceId, assignedToName }: { invoiceId: number; assignedToName?: string | null }) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [internalUsers, setInternalUsers] = useState<InternalUser[]>([]);
+  const [requesting, setRequesting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [directAssignee, setDirectAssignee] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const isManager = user?.role === "admin" || user?.role === "approver";
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/users/internal`)
+      .then((r) => r.ok ? r.json() : [])
+      .then(setInternalUsers);
+  }, []);
+
+  const handleRequestHandoff = async () => {
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${BASE_URL}/api/invoices/${invoiceId}/handoffs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: notes.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      toast({ title: "Handoff requested", description: "A manager will review your request." });
+      queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
+      setRequesting(false);
+      setNotes("");
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDirectAssign = async () => {
+    if (!directAssignee) return;
+    setSaving(true);
+    try {
+      const assignee = internalUsers.find((u) => String(u.id) === directAssignee);
+      const res = await fetch(`${BASE_URL}/api/invoices/${invoiceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assignedToUserId: parseInt(directAssignee),
+          assignedToName: assignee?.displayName ?? null,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to reassign");
+      toast({ title: "Reassigned", description: `Invoice assigned to ${assignee?.displayName}.` });
+      queryClient.invalidateQueries({ queryKey: getGetInvoiceQueryKey(invoiceId) });
+      setDirectAssignee("");
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-card border border-card-border rounded-lg p-5">
+      <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+        <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+        Assignment
+      </h2>
+      <div className="space-y-3">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Currently Assigned To</p>
+          <p className="mt-0.5 text-sm text-foreground">{assignedToName ?? "Unassigned"}</p>
+        </div>
+
+        {isManager ? (
+          <div className="flex items-center gap-2 pt-1">
+            <Select value={directAssignee} onValueChange={setDirectAssignee}>
+              <SelectTrigger className="h-8 w-52 text-xs">
+                <SelectValue placeholder="Reassign to..." />
+              </SelectTrigger>
+              <SelectContent>
+                {internalUsers.map((u) => (
+                  <SelectItem key={u.id} value={String(u.id)}>
+                    {u.displayName}
+                    <span className="text-muted-foreground ml-1 text-xs">({u.role})</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              className="h-8 px-3 text-xs"
+              disabled={!directAssignee || saving}
+              onClick={handleDirectAssign}
+            >
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign"}
+            </Button>
+          </div>
+        ) : (
+          <div>
+            {!requesting ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setRequesting(true)}
+              >
+                Request Handoff
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Optional: reason for handoff request..."
+                  className="text-xs h-16 resize-none"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" className="h-7 px-3 text-xs" onClick={handleRequestHandoff} disabled={submitting}>
+                    {submitting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Submit Request"}
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 px-3 text-xs" onClick={() => { setRequesting(false); setNotes(""); }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface InvoiceAttachment {
   id: number;
@@ -750,6 +897,8 @@ export default function InvoiceDetailPage() {
             </div>
           )}
         </div>
+
+        <HandoffSection invoiceId={invoice.id} assignedToName={(invoice as any).assignedToName} />
 
         <AttachmentsSection invoiceId={invoice.id} />
 

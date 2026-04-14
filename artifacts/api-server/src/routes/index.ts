@@ -10,6 +10,8 @@ import staffRouter from "./staff";
 import dashboardRouter from "./dashboard";
 import storageRouter from "./storage";
 import vendorRouter from "./vendor";
+import handoffsRouter from "./handoffs";
+import usersRouter from "./users";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(staffRouter);
 router.use(dashboardRouter);
 router.use(storageRouter);
 router.use(vendorRouter);
+router.use(handoffsRouter);
+router.use(usersRouter);
 
 export default router;
